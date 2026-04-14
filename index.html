@@ -57,7 +57,13 @@
     </div>
 
     <div class="inspector-panel" id="inspector-panel">
-      <div class="panel-header"><span class="panel-label">Inspector</span></div>
+      <div class="panel-header">
+        <span class="panel-label">Inspector</span>
+        <button class="tool-btn inspector-toggle" id="inspector-toggle" title="Toggle Inspector">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="inspector-collapsed-label">Inspector</div>
       <div class="inspector-content" id="inspector-content">
         <div class="inspector-placeholder">Click an element in the preview to inspect its styles</div>
       </div>
