@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>WeMarkdown</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="style.css" />
@@ -10,33 +10,117 @@
   <link rel="stylesheet" href="lib/github-dark-hljs.min.css" id="code-theme-dark" disabled />
   <script src="lib/marked.min.js"></script>
   <script src="lib/highlight.min.js"></script>
+  <script src="lib/html-to-image.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 </head>
 <body>
-  <header class="toolbar">
-    <div class="toolbar-left">
-      <img src="logo-light.svg" alt="WeMarkdown" class="toolbar-logo logo-light" />
-      <img src="logo-dark.svg" alt="WeMarkdown" class="toolbar-logo logo-dark" style="display:none" />
-      <span class="toolbar-title">WeMarkdown</span>
+  <header class="topbar" id="topbar">
+    <div class="topbar-left">
+      <img src="logo-light.svg" alt="WeMarkdown" class="topbar-logo logo-light" />
+      <img src="logo-dark.svg" alt="WeMarkdown" class="topbar-logo logo-dark" style="display:none" />
+      <!-- Site-level BETA badge: plain text, sits next to the logo so
+           the WeMarkdown product itself is marked as in-development,
+           rather than individual preview modes. -->
+      <span class="topbar-beta" aria-label="Beta">BETA</span>
     </div>
-    <div class="toolbar-right">
-      <button class="tool-btn icon-btn" id="theme-toggle" title="Toggle theme">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sun-icon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="moon-icon" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <div class="topbar-right">
+      <button class="tool-btn icon-btn" id="theme-toggle" data-i18n-title="ui.themeToggle" title="Toggle theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sun-icon"><circle cx="12" cy="12" r="7"/><line x1="12" y1="0.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23.5"/><line x1="3.72" y1="3.72" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="20.28" y2="20.28"/><line x1="0.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23.5" y2="12"/><line x1="3.72" y1="20.28" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="20.28" y2="3.72"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="moon-icon" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
+      <div class="lang-dropdown" id="lang-dropdown">
+        <button class="tool-btn icon-btn lang-dropdown-trigger" id="lang-toggle" data-i18n-title="ui.langToggle" title="Switch language">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" id="lang-dropdown-menu" role="menu" aria-hidden="true">
+          <button class="lang-dropdown-item" data-lang="en" role="menuitem">English</button>
+          <button class="lang-dropdown-item" data-lang="zh" role="menuitem">中文</button>
+        </div>
+      </div>
     </div>
   </header>
-
   <main class="editor-container">
-    <div class="panel editor-panel">
+    <div class="panel editor-panel" id="editor-panel">
       <div class="panel-header">
-        <span class="panel-label">Markdown</span>
-        <span class="char-count" id="char-count">0 chars</span>
+        <div class="editor-header-left">
+          <!-- Example picker: the label doubles as a dropdown trigger
+               so users can switch between the bundled example docs
+               (WeMarkdown.md, Brian Eno.md, Attention.md, …) without
+               losing the familiar "filename" affordance. -->
+          <div class="example-dropdown" id="example-dropdown">
+            <button class="panel-label example-dropdown-trigger" id="example-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-title="editor.switchExample" title="Switch example">
+              <span class="example-dropdown-label" id="example-label">WeMarkdown.md</span>
+              <svg class="example-dropdown-caret" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="example-dropdown-menu" id="example-dropdown-menu" role="menu" aria-hidden="true">
+              <div class="example-dropdown-section" id="example-builtin-section">
+                <button class="example-dropdown-item active" type="button" role="menuitem" data-example-id="welcome">WeMarkdown.md</button>
+                <button class="example-dropdown-item" type="button" role="menuitem" data-example-id="brian-eno">Brian Eno.md</button>
+                <button class="example-dropdown-item" type="button" role="menuitem" data-example-id="attention">Attention.md</button>
+              </div>
+              <!-- User-added documents (uploaded or newly created) live here.
+                   Populated by JS; hidden entirely when empty. -->
+              <div class="example-dropdown-section example-user-section" id="example-user-section" hidden></div>
+              <div class="example-dropdown-divider"></div>
+              <button class="example-dropdown-action" type="button" id="example-upload-btn" data-i18n="editor.uploadFile">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Upload file…</span>
+              </button>
+              <button class="example-dropdown-action" type="button" id="example-new-btn" data-i18n="editor.newDoc">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>New document…</span>
+              </button>
+            </div>
+            <input type="file" id="example-file-input" accept=".md,.markdown,.txt,text/markdown,text/plain" style="display:none">
+          </div>
+        </div>
+        <div class="editor-header-right">
+          <button class="tool-btn" id="editor-reset" data-i18n-title="editor.reset" title="Reset to default content">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+          </button>
+          <button class="tool-btn" id="export-md" data-i18n-title="editor.export" title="Export .md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <!-- Collapse/expand chevron. Only visible in the narrow
+               (stacked) layout where it lives at the rightmost slot
+               of the header, after the download button. Hidden on
+               desktop where clicking the panel header handles the
+               toggle silently. -->
+          <button class="tool-btn editor-toggle" id="editor-toggle" data-i18n-title="editor.toggle" title="Toggle Editor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="editor-body">
+      <div class="editor-collapsed-label">WeMarkdown.md</div>
+      <div class="editor-collapsed-arrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="editor-body" id="editor-body">
         <div class="line-numbers" id="line-numbers"></div>
-        <textarea id="editor" spellcheck="false" placeholder="Type Markdown here..."></textarea>
+        <div class="editor-wrap">
+          <div class="editor-overlay" id="editor-overlay" aria-hidden="true"></div>
+          <div class="editor-ws-overlay" id="editor-ws-overlay" aria-hidden="true"></div>
+          <textarea id="editor" spellcheck="false" data-i18n-placeholder="editor.placeholder" placeholder="Type Markdown here..."></textarea>
+        </div>
+      </div>
+      <!-- "New document" naming dialog. Positioned absolutely inside
+           the editor panel so the frosted overlay only masks the raw
+           text area (never the header or the other panels), and the
+           panel's own rounded corners naturally clip the overlay. -->
+      <div class="example-name-dialog" id="example-name-dialog" hidden>
+        <div class="example-name-dialog-backdrop" id="example-name-dialog-backdrop"></div>
+        <div class="example-name-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="example-name-dialog-title">
+          <div class="example-name-dialog-title" id="example-name-dialog-title" data-i18n="editor.newDocTitle">New document</div>
+          <div class="example-name-dialog-input-wrap">
+            <input type="text" class="example-name-dialog-input" id="example-name-dialog-input" spellcheck="false" autocomplete="off" />
+            <span class="example-name-dialog-suffix" aria-hidden="true">.md</span>
+          </div>
+          <div class="example-name-dialog-actions">
+            <button type="button" class="example-name-dialog-btn" id="example-name-dialog-cancel" data-i18n="ui.cancel">Cancel</button>
+            <button type="button" class="example-name-dialog-btn primary" id="example-name-dialog-ok" data-i18n="ui.create">Create</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -44,32 +128,329 @@
 
     <div class="panel preview-panel">
       <div class="panel-header">
-        <span class="panel-label">Preview</span>
-        <span class="width-label" id="width-label">400px</span>
+        <span class="panel-label preview-panel-label" data-i18n="preview.title">Preview</span>
+        <div class="preview-header-left">
+          <div class="preview-modes" id="preview-modes">
+            <button class="mode-btn active" data-mode="ai">AI</button>
+            <button class="mode-btn" data-mode="chats" data-i18n="mode.chats">Chats</button>
+            <button class="mode-btn" data-mode="files" data-i18n="mode.files">Files</button>
+          </div>
+          <div class="preview-modes-dropdown" id="preview-modes-dropdown">
+            <button class="mode-dropdown-trigger" id="mode-dropdown-trigger">
+              <span class="mode-dropdown-label">AI</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="mode-dropdown-menu" id="mode-dropdown-menu">
+              <button class="mode-dropdown-item active" data-mode="ai">AI</button>
+              <button class="mode-dropdown-item" data-mode="chats">Chats</button>
+              <button class="mode-dropdown-item" data-mode="files">Files</button>
+            </div>
+          </div>
+        </div>
+        <div class="mode-dropdown-backdrop" id="mode-dropdown-backdrop"></div>
+        <div class="preview-header-right">
+        <!-- Add a virtual screen. Icon: phone-sized rounded rectangle
+             with a "+" badge clipped into the bottom-right corner. Sits
+             to the LEFT of the export camera. Disabled look when the
+             screen count has reached the cap (driven by
+             `preview-outer-row[data-at-max="1"]` — see CSS). -->
+        <button class="tool-btn icon-btn" id="screen-add-btn" type="button" data-i18n-title="ui.addScreen" title="Add screen" aria-label="Add screen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Phone-screen: tall rounded rectangle, 16×20 at
+                 x=4..20 / y=2..22, corner radius 2. Uses the same
+                 24×24 viewBox as the neighboring topbar icons
+                 (export camera / settings / expand) so the stroke
+                 weight rendered on screen matches 1:1. -->
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+            <!-- "+" badge at the phone's geometric center (12, 12).
+                 Each arm is 3.5 units long (total 7) so the glyph
+                 has ~1.5u horizontal and ~2.5u vertical margin to
+                 the inner edges. -->
+            <line x1="12" y1="8.5" x2="12" y2="15.5"/>
+            <line x1="8.5" y1="12" x2="15.5" y2="12"/>
+          </svg>
+        </button>
+        <!-- Export the .markdown-body content as a PNG (long screenshot).
+             Opens an in-panel dialog for filename + DPR before running
+             html-to-image. Sits to the LEFT of the settings gear. -->
+        <button class="tool-btn icon-btn" id="export-image-btn" data-i18n-title="ui.exportImage" title="Export as image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <button class="tool-btn icon-btn" id="settings-open-btn" data-i18n-title="ui.openSettings" title="Open settings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <button class="tool-btn icon-btn" id="fullscreen-toggle" data-i18n-title="ui.fullscreen" title="Fullscreen preview">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="expand-icon"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="compress-icon" style="display:none"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="3" y1="21" x2="10" y2="14"/><line x1="21" y1="3" x2="14" y2="10"/></svg>
+        </button>
+        </div>
       </div>
       <div class="preview-bg" id="preview-bg">
-        <div class="preview-card" id="preview-card">
-          <div class="markdown-body" id="preview"></div>
+        <div class="preview-outer-wrap">
+          <div class="card-handle card-handle-top" id="card-handle-top"><div class="card-handle-bar"></div></div>
+            <div class="preview-outer-row" id="preview-outer-row">
+              <div class="card-handle card-handle-left screen-side-handle" id="card-handle-left" data-side="left"><div class="card-handle-bar"></div></div>
+              <div class="screens-container" id="screens-container">
+                <div class="screen-wrap" data-screen-index="1">
+                  <div class="preview-outer" id="preview-outer" data-screen-index="1">
+                    <div class="preview-card" id="preview-card">
+                      <div class="markdown-body" id="preview"></div>
+                    </div>
+                  </div>
+                  <button class="screen-badge" type="button" aria-label="Screen 1">
+                    <span class="screen-badge-num">1</span>
+                    <span class="screen-badge-close" aria-hidden="true">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div class="card-handle card-handle-right screen-side-handle" id="card-handle-right" data-side="right">
+                <div class="card-handle-bar"></div>
+              </div>
+              <div class="width-tooltip" id="width-label">400px</div>
+            </div>
+          <div class="card-handle card-handle-bottom" id="card-handle-bottom"><div class="card-handle-bar"></div></div>
         </div>
-        <div class="card-handle card-handle-left" id="card-handle-left"><div class="card-handle-bar"></div></div>
-        <div class="card-handle card-handle-right" id="card-handle-right"><div class="card-handle-bar"></div></div>
+      </div>
+      <!-- Image-export dialog, scoped to the preview panel so the frosted
+           overlay only masks the preview area (mirrors the new-doc
+           dialog inside the editor panel). -->
+      <div class="export-image-dialog" id="export-image-dialog" hidden>
+        <div class="export-image-dialog-backdrop" id="export-image-dialog-backdrop"></div>
+        <div class="export-image-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="export-image-dialog-title">
+          <div class="export-image-dialog-title" id="export-image-dialog-title" data-i18n="ui.exportImageTitle">Export as image</div>
+
+          <label class="export-image-dialog-field">
+            <span class="export-image-dialog-label" data-i18n="ui.exportImageName">File name</span>
+            <div class="export-image-dialog-input-wrap">
+              <input type="text" class="export-image-dialog-input" id="export-image-dialog-name" spellcheck="false" autocomplete="off" />
+              <span class="export-image-dialog-suffix" aria-hidden="true">.png</span>
+            </div>
+          </label>
+
+          <div class="export-image-dialog-field">
+            <span class="export-image-dialog-label" data-i18n="ui.exportImageDpr">Resolution</span>
+            <div class="export-image-dialog-dpr" id="export-image-dialog-dpr">
+              <button type="button" class="export-image-dialog-dpr-btn" data-dpr="1">1x</button>
+              <button type="button" class="export-image-dialog-dpr-btn" data-dpr="2">2x</button>
+              <button type="button" class="export-image-dialog-dpr-btn active" data-dpr="3">3x</button>
+              <button type="button" class="export-image-dialog-dpr-btn" data-dpr="4">4x</button>
+            </div>
+          </div>
+
+          <div class="export-image-dialog-status" id="export-image-dialog-status" aria-live="polite"></div>
+
+          <div class="export-image-dialog-actions">
+            <button type="button" class="export-image-dialog-btn" id="export-image-dialog-cancel" data-i18n="ui.cancel">Cancel</button>
+            <button type="button" class="export-image-dialog-btn primary" id="export-image-dialog-ok">
+              <!-- Spinner is revealed only while exporting (CSS
+                   .is-loading). The label span carries data-i18n so
+                   applyI18n() writes into it instead of clobbering the
+                   whole button's innerHTML (which would delete the
+                   spinner node along with the text). -->
+              <span class="export-image-dialog-btn-spinner" aria-hidden="true"></span>
+              <span class="export-image-dialog-btn-label" data-i18n="ui.exportImageDo">Export</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="inspector-panel" id="inspector-panel">
+    <div class="panel inspector-panel collapsed" id="inspector-panel">
       <div class="panel-header">
-        <span class="panel-label">Inspector</span>
-        <button class="tool-btn inspector-toggle" id="inspector-toggle" title="Toggle Inspector">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="panel-label" id="inspector-title" data-i18n="settings.title">Settings</span>
+        <button class="tool-btn inspector-toggle" id="inspector-toggle" data-i18n-title="ui.close" title="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
         </button>
       </div>
-      <div class="inspector-collapsed-label">Inspector</div>
       <div class="inspector-content" id="inspector-content">
-        <div class="inspector-placeholder">Click an element in the preview to inspect its styles</div>
+        <div class="inspector-settings" id="inspector-settings">
+          <div class="inspector-section">
+            <div class="inspector-section-title" data-i18n="section.typography">Typography</div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.baseFontSize">Base font size</span>
+              <div class="stepper" id="fs-stepper">
+                <button class="stepper-btn stepper-reset" id="fs-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="fs-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="fs-value">17</span>
+                <button class="stepper-btn" id="fs-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h1Top">H1 top</span>
+              <div class="stepper" id="mth1-stepper">
+                <button class="stepper-btn stepper-reset" id="mth1-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth1-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth1-value">12</span>
+                <button class="stepper-btn" id="mth1-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h2Top">H2 top</span>
+              <div class="stepper" id="mth2-stepper">
+                <button class="stepper-btn stepper-reset" id="mth2-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth2-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth2-value">8</span>
+                <button class="stepper-btn" id="mth2-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h3Top">H3 top</span>
+              <div class="stepper" id="mth3-stepper">
+                <button class="stepper-btn stepper-reset" id="mth3-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth3-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth3-value">4</span>
+                <button class="stepper-btn" id="mth3-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h4Top">H4 top</span>
+              <div class="stepper" id="mth4-stepper">
+                <button class="stepper-btn stepper-reset" id="mth4-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth4-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth4-value">20</span>
+                <button class="stepper-btn" id="mth4-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h5Top">H5 top</span>
+              <div class="stepper" id="mth5-stepper">
+                <button class="stepper-btn stepper-reset" id="mth5-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth5-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth5-value">16</span>
+                <button class="stepper-btn" id="mth5-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.h6Top">H6 top</span>
+              <div class="stepper" id="mth6-stepper">
+                <button class="stepper-btn stepper-reset" id="mth6-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mth6-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mth6-value">0</span>
+                <button class="stepper-btn" id="mth6-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.bodyLineHeight">Body line-height</span>
+              <div class="stepper" id="lhb-stepper">
+                <button class="stepper-btn stepper-reset" id="lhb-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="lhb-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="lhb-value">1.4</span>
+                <button class="stepper-btn" id="lhb-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.headingLineHeight">Heading line-height</span>
+              <div class="stepper" id="lhh-stepper">
+                <button class="stepper-btn stepper-reset" id="lhh-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="lhh-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="lhh-value">1.4</span>
+                <button class="stepper-btn" id="lhh-increase" title="Increase">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title" data-i18n="section.spacing">Spacing</div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.singleBreak">Single break</span>
+              <div class="stepper" id="sp1-stepper">
+                <button class="stepper-btn stepper-reset" id="sp1-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="sp1-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="sp1-value">4</span>
+                <button class="stepper-btn" id="sp1-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.doubleBreak">Double break</span>
+              <div class="stepper" id="sp2-stepper">
+                <button class="stepper-btn stepper-reset" id="sp2-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="sp2-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="sp2-value">8</span>
+                <button class="stepper-btn" id="sp2-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.headerTop">Header top</span>
+              <div class="stepper" id="thpt-stepper">
+                <button class="stepper-btn stepper-reset" id="thpt-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="thpt-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="thpt-value">12</span>
+                <button class="stepper-btn" id="thpt-increase" title="Increase">+</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.tableBottom">Table bottom</span>
+              <div class="stepper" id="tblpb-stepper">
+                <button class="stepper-btn stepper-reset" id="tblpb-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="tblpb-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="tblpb-value">8</span>
+                <button class="stepper-btn" id="tblpb-increase" title="Increase">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title" data-i18n="section.layout">Layout</div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.maxIndent">Max indent</span>
+              <div class="stepper" id="mi-stepper">
+                <button class="stepper-btn stepper-reset" id="mi-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <button class="stepper-btn" id="mi-decrease" title="Decrease">−</button>
+                <span class="stepper-value" id="mi-value">3</span>
+                <button class="stepper-btn" id="mi-increase" title="Increase">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title-row">
+              <div class="inspector-section-title" data-i18n="section.colors">Colors</div>
+              <div class="theme-segmented" id="theme-segmented" role="tablist" aria-label="Theme for color editing">
+                <button class="theme-seg-btn active" data-theme-target="light" data-i18n="segment.light" role="tab" aria-selected="true">Light</button>
+                <button class="theme-seg-btn" data-theme-target="dark" data-i18n="segment.dark" role="tab" aria-selected="false">Dark</button>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.text">Text</span>
+              <div class="color-control" id="pc-text-stepper">
+                <button class="stepper-btn stepper-reset" id="pc-text-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <input type="color" class="color-input" id="pc-text" value="#000000" tabindex="-1" aria-hidden="true">
+                <input type="text" class="hex-input" id="pc-text-hex" value="000000" maxlength="7" spellcheck="false" title="Hex">
+                <input type="number" class="alpha-input" id="pc-text-alpha" min="0" max="100" step="1" value="90" title="Opacity %"><span class="alpha-suffix">%</span>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.border">Border</span>
+              <div class="color-control" id="pc-border-stepper">
+                <button class="stepper-btn stepper-reset" id="pc-border-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <input type="color" class="color-input" id="pc-border" value="#000000" tabindex="-1" aria-hidden="true">
+                <input type="text" class="hex-input" id="pc-border-hex" value="000000" maxlength="7" spellcheck="false" title="Hex">
+                <input type="number" class="alpha-input" id="pc-border-alpha" min="0" max="100" step="1" value="15" title="Opacity %"><span class="alpha-suffix">%</span>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.cardBg">Card bg</span>
+              <div class="color-control" id="pc-card-stepper">
+                <button class="stepper-btn stepper-reset" id="pc-card-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <input type="color" class="color-input" id="pc-card" value="#ffffff" tabindex="-1" aria-hidden="true">
+                <input type="text" class="hex-input" id="pc-card-hex" value="ffffff" maxlength="7" spellcheck="false" title="Hex">
+                <input type="number" class="alpha-input" id="pc-card-alpha" min="0" max="100" step="1" value="100" title="Opacity %"><span class="alpha-suffix">%</span>
+              </div>
+            </div>
+            <div class="inspector-row">
+              <span class="inspector-key" data-i18n="key.codeBg">Code bg</span>
+              <div class="color-control" id="pc-code-stepper">
+                <button class="stepper-btn stepper-reset" id="pc-code-reset" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>
+                <input type="color" class="color-input" id="pc-code" value="#000000" tabindex="-1" aria-hidden="true">
+                <input type="text" class="hex-input" id="pc-code-hex" value="000000" maxlength="7" spellcheck="false" title="Hex">
+                <input type="number" class="alpha-input" id="pc-code-alpha" min="0" max="100" step="1" value="5" title="Opacity %"><span class="alpha-suffix">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="inspector-element" id="inspector-element" style="display:none"></div>
       </div>
     </div>
   </main>
-
   <div class="toast" id="toast"></div>
   <script src="app.js"></script>
 </body>

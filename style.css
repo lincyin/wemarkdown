@@ -1,164 +1,1446 @@
 /* ===== Variables ===== */
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f6f8fa;
-  --bg-tertiary: #eaeef2;
+  --bg-secondary: #f7f7f7;
+  --bg-tertiary: #ececec;
+  --bg-page: #ececec;       /* Outermost body / editor-container background */
   --text-primary: rgba(0,0,0,0.9);
-  --text-secondary: #656d76;
+  --text-secondary: #6b6b6b;
   --border-color: rgba(0,0,0,0.15);
-  --border-light: #e8ecf0;
+  --border-light: #e8e8e8;
   --accent: #07C160;
   --accent-bg: rgba(7,193,96,0.08);
-  --toolbar-bg: #f6f8fa;
-  --toolbar-border: #d0d7de;
+  --toolbar-bg: #f7f7f7;
+  --toolbar-border: #d4d4d4;
   --editor-bg: #ffffff;
-  --divider-color: #d0d7de;
+  --divider-color: #d4d4d4;
   --divider-hover: #07C160;
   --inline-code-bg: rgba(0,0,0,0.05);
-  --preview-bg: #F0F0F4;
+  --preview-bg: #F0F0F0;
   --card-bg: #ffffff;
-  --toast-bg: #1f2328;
+  --toast-bg: #1f1f1f;
   --toast-text: #ffffff;
-  --scrollbar-thumb: #c1c8cd;
+  --scrollbar-thumb: #c4c4c4;
+  --grabber: rgba(0,0,0,0.2);
   --transition: 0.2s ease;
   --radius: 8px;
+  /* Fixed width shared by the Editor and Settings (inspector) side panels.
+     Replaces the old drag-resizable flex model: both side panels now have
+     exactly this width, and the Preview panel flexes to fill whatever is
+     left. Adjust this single value to rescale both side columns. */
+  --side-panel-width: 320px;
+  /* Preview typography scale — all derived from --fs-base */
+  --fs-base: 17px;
+  --fs-h1: calc(var(--fs-base) + 4px);
+  --fs-h2: calc(var(--fs-base) + 2px);
+  --fs-h3: var(--fs-base);
+  --fs-h4: var(--fs-base);
+  --fs-h5: var(--fs-base);
+  --fs-h6: var(--fs-base);
+  --fs-code: calc(var(--fs-base) - 2px);
+  --fs-code-small: calc(var(--fs-base) - 4px);
+  --fs-lang-label: calc(var(--fs-base) - 2px);
+  /* Preview spacing scale */
+  --sp-single: 4px;   /* one newline between block-level siblings */
+  --sp-double: 8px;   /* two newlines (paragraph break) */
+  /* Per-heading-level top margin (space above each heading). */
+  --mt-h1: 12px;
+  --mt-h2: 8px;
+  --mt-h3: 4px;
+  --mt-h4: 0px;
+  --mt-h5: 0px;
+  --mt-h6: 0px;
+  /* Max indent level for nested quotes/lists */
+  --max-indent: 3;
+  /* Line-heights — independently adjustable for body vs headings.
+     Stored as unit-less numbers (the idiomatic way) so they scale with
+     each element's own font-size. Defaults are deliberately identical
+     (1.4) so the out-of-the-box look is unchanged. */
+  --lh-body: 1.4;
+  --lh-heading: 1.4;
+  /* Extra top padding inside table header cells. Lets the top gap above
+     header text be tuned independently of the shared --th-py used for
+     the other three sides. */
+  --th-pt: 12px;
+  /* Extra vertical gap *below* the whole table, added on top of the
+     standard --sp-double paragraph spacing. Lets the user give tables
+     more breathing room against whatever block follows, without pushing
+     every other paragraph apart. Default 8px (one --sp-double worth). */
+  --tbl-pb: 8px;
+  /* Link color — WeChat-style blue, tuned per theme. */
+  --link-color: #576B95;
+  /* Preview color tokens (light mode defaults — all overridable from Settings).
+     Values are stored as hex8 (#rrggbbaa) so the Settings panel can edit
+     RGB + opacity independently. --pv-accent intentionally omitted: the
+     accent is a site-level brand color, not a per-render rule. */
+  --pv-text: #000000e6;            /* rgba(0,0,0,0.9) */
+  --pv-text-secondary: #6b6b6bff;
+  --pv-border: #00000026;          /* rgba(0,0,0,0.15) */
+  --pv-quote-border: #00000026;
+  --pv-card-bg: #ffffffff;
+  --pv-inline-code-bg: #0000000d;  /* rgba(0,0,0,0.05) */
 }
 [data-theme="dark"] {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;   /* panel background (deep gray) */
+  --bg-tertiary: #262626;    /* hover states within panels */
+  --bg-page: #000000;        /* outer body/container (near-black, deeper than panels) */
   --text-primary: rgba(255,255,255,0.8);
-  --text-secondary: #8b949e;
+  --text-secondary: #8a8a8a;
   --border-color: rgba(255,255,255,0.15);
-  --border-light: #21262d;
+  --border-light: #262626;
   --accent: #2DD272;
   --accent-bg: rgba(7,193,96,0.12);
-  --toolbar-bg: #161b22;
-  --toolbar-border: #30363d;
-  --editor-bg: #0d1117;
-  --divider-color: #30363d;
+  --toolbar-bg: #171717;
+  --toolbar-border: #303030;
+  --editor-bg: #101010;
+  --divider-color: #303030;
   --divider-hover: #2DD272;
   --inline-code-bg: rgba(255,255,255,0.1);
   --preview-bg: #18181B;
   --card-bg: #252528;
   --toast-bg: #e6edf3;
-  --toast-text: #0d1117;
-  --scrollbar-thumb: #484f58;
+  --toast-text: #101010;
+  --scrollbar-thumb: #484848;
+  --grabber: rgba(255,255,255,0.2);
+  /* Preview color tokens — dark mode defaults */
+  --pv-text: #ffffffcc;            /* rgba(255,255,255,0.8) */
+  --pv-text-secondary: #8a8a8aff;
+  --pv-border: #ffffff26;          /* rgba(255,255,255,0.15) */
+  --pv-quote-border: #ffffff26;
+  --pv-card-bg: #252528ff;
+  --pv-inline-code-bg: #ffffff1a;  /* rgba(255,255,255,0.1) */
+  --link-color: #7D90A9;
+}
+
+/* ===== CJK-upright italic workaround =====
+   Markdown's `*text*` maps to <em>{font-style:italic}. Most CJK system
+   fonts have no italic glyph, so browsers synthesize a skew that looks
+   broken and hurts legibility. To defeat that, we declare TWO
+   "WMD-CJK-Upright" @font-face rules with the *same* src chain but
+   different `font-style` descriptors: one normal, one italic. The
+   unicode-range on both covers CJK + fullwidth punctuation.
+
+   How it works:
+   - Non-italic CJK text selects the `normal` face → regular upright glyph.
+   - Italic CJK text (inside <em>/<i>) would normally slant — but because
+     we also declare an `italic` face that points at the exact same local
+     regular CJK fonts, the browser finds a matching italic face and uses
+     it as-is, without synthesizing a skew. Result: CJK stays upright.
+   - Latin/digits are outside unicode-range on both faces, so they fall
+     through to the next family in the stack (the UI font) and still get
+     its real italic face — Latin italics continue to work normally. */
+@font-face{
+  font-family: "WMD-CJK-Upright";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("PingFang SC"), local("PingFang TC"), local("PingFang HK"),
+       local("Hiragino Sans GB"), local("Heiti SC"),
+       local("Microsoft YaHei"), local("Microsoft JhengHei"),
+       local("Source Han Sans SC"), local("Source Han Sans TC"),
+       local("Noto Sans CJK SC"), local("Noto Sans CJK TC"),
+       local("Noto Sans SC"), local("Noto Sans TC"),
+       local("Hiragino Kaku Gothic ProN"), local("Yu Gothic"), local("Meiryo"),
+       local("Apple SD Gothic Neo"), local("Malgun Gothic");
+  unicode-range:
+    U+2E80-2EFF,   /* CJK Radicals Supplement */
+    U+2F00-2FDF,   /* Kangxi Radicals */
+    U+3000-303F,   /* CJK Symbols and Punctuation */
+    U+3040-309F,   /* Hiragana */
+    U+30A0-30FF,   /* Katakana */
+    U+3100-312F,   /* Bopomofo */
+    U+3130-318F,   /* Hangul Compatibility Jamo */
+    U+31C0-31EF,   /* CJK Strokes */
+    U+31F0-31FF,   /* Katakana Phonetic Extensions */
+    U+3200-32FF,   /* Enclosed CJK */
+    U+3300-33FF,   /* CJK Compatibility */
+    U+3400-4DBF,   /* CJK Extension A */
+    U+4E00-9FFF,   /* CJK Unified Ideographs */
+    U+A000-A4CF,   /* Yi Syllables */
+    U+AC00-D7AF,   /* Hangul Syllables */
+    U+F900-FAFF,   /* CJK Compatibility Ideographs */
+    U+FE30-FE4F,   /* CJK Compatibility Forms */
+    U+FF00-FFEF,   /* Halfwidth and Fullwidth Forms */
+    U+20000-2A6DF, /* CJK Extension B */
+    U+2A700-2B73F, /* CJK Extension C */
+    U+2B740-2B81F, /* CJK Extension D */
+    U+2B820-2CEAF, /* CJK Extension E */
+    U+2F800-2FA1F; /* CJK Compatibility Ideographs Supplement */
+}
+/* Second face: tells the browser "italic already exists for CJK glyphs"
+   (so it won't synthesize a skew), but points at the same upright local
+   fonts. Net effect: `<em>中文</em>` renders with the regular upright
+   glyph, zero synthetic slanting, on every platform. */
+@font-face{
+  font-family: "WMD-CJK-Upright";
+  font-style: italic;
+  font-weight: 100 900;
+  src: local("PingFang SC"), local("PingFang TC"), local("PingFang HK"),
+       local("Hiragino Sans GB"), local("Heiti SC"),
+       local("Microsoft YaHei"), local("Microsoft JhengHei"),
+       local("Source Han Sans SC"), local("Source Han Sans TC"),
+       local("Noto Sans CJK SC"), local("Noto Sans CJK TC"),
+       local("Noto Sans SC"), local("Noto Sans TC"),
+       local("Hiragino Kaku Gothic ProN"), local("Yu Gothic"), local("Meiryo"),
+       local("Apple SD Gothic Neo"), local("Malgun Gothic");
+  unicode-range:
+    U+2E80-2EFF, U+2F00-2FDF, U+3000-303F, U+3040-309F, U+30A0-30FF,
+    U+3100-312F, U+3130-318F, U+31C0-31EF, U+31F0-31FF, U+3200-32FF,
+    U+3300-33FF, U+3400-4DBF, U+4E00-9FFF, U+A000-A4CF, U+AC00-D7AF,
+    U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF,
+    U+20000-2A6DF, U+2A700-2B73F, U+2B740-2B81F, U+2B820-2CEAF, U+2F800-2FA1F;
 }
 
 /* ===== Reset ===== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;background:var(--bg-page);color:var(--text-primary);overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* ===== Top bar ===== */
+.topbar{
+  flex:0 0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  padding-top:env(safe-area-inset-top, 0px);
+  background:var(--bg-page);
+  gap:16px;
+  min-height:48px;
+}
+.topbar-left{display:flex;align-items:center;flex-shrink:0;padding-left:4px}
+/* Nudge the two topbar icons (theme + language) 24px inward from
+   the edge on wide layouts (16 + 8 for the design tweak). The
+   inter-icon gap is widened from 8 to 12 so the two glyphs feel
+   like distinct affordances rather than a stacked pair. In the
+   narrow (stacked) layout the padding economy matters more than
+   the breathing room, so we reset this extra margin (see the
+   max-width:900px media query below). */
+.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0;margin-right:12px}
+.topbar-logo{height:48px;width:auto;display:block}
+[data-theme="dark"] .topbar-logo.logo-light{display:none}
+[data-theme="light"] .topbar-logo.logo-dark,.topbar-logo.logo-dark{display:none}
+[data-theme="dark"] .topbar-logo.logo-dark{display:block}
+/* Site-level BETA tag: plain uppercase text, no pill/container.
+   Muted color so it's unmistakably secondary to the logo. */
+.topbar-beta{
+  margin-left:6px;
+  font-size:9px;font-weight:700;letter-spacing:0.8px;
+  line-height:1;
+  color:rgba(0,0,0,0.35);
+  user-select:none;
+  /* Nudge up to align with the logo's optical baseline. */
+  align-self:center;
+  padding-top:1px;
+}
+[data-theme="dark"] .topbar-beta{color:rgba(255,255,255,0.4)}
+/* Topbar icon buttons: no hover background, only a muted color change
+   on hover (icon fades to a softer gray to indicate interactivity).
+   Also enforce a uniform 16×16 svg footprint so the sun / moon / globe
+   glyphs read at the same optical size regardless of the inline
+   width/height attributes on the <svg> element. */
+.topbar-right .tool-btn{background:transparent !important;color:var(--text-secondary)}
+.topbar-right .tool-btn:hover{background:transparent !important;color:var(--text-primary)}
+.topbar-right .icon-btn svg{width:14px;height:14px;flex-shrink:0;display:block}
+
+/* Theme switching is intentionally instant. Animating color/background on
+   every element (especially the hundreds of KaTeX / code spans in the
+   preview) causes jank and makes different nodes appear to "lag" behind
+   each other. Instant swaps match system-level UX (macOS, VS Code, Linear)
+   and are perceptibly faster and cleaner. */
+html.theme-switching,html.theme-switching *,html.theme-switching *::before,html.theme-switching *::after{
+  transition:none !important;
+}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:3px}
 
-/* ===== Toolbar ===== */
-.toolbar{display:flex;align-items:center;justify-content:space-between;height:44px;padding:0 16px;background:var(--toolbar-bg);border-bottom:1px solid var(--toolbar-border);user-select:none;flex-shrink:0}
-.toolbar-left{display:flex;align-items:center;gap:8px}
-.toolbar-logo{height:40px;width:auto}
-.toolbar-title{font-weight:600;font-size:14px;color:var(--text-primary)}
-/* Dark mode logo toggle */
+/* Logo light/dark toggle (used by .panel-logo images) */
 [data-theme="dark"] .logo-light{display:none!important}
 [data-theme="dark"] .logo-dark{display:block!important}
 [data-theme="light"] .logo-light,.logo-light{display:block}
 [data-theme="light"] .logo-dark,.logo-dark{display:none}
-.toolbar-right{display:flex;align-items:center;gap:4px}
 .tool-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:none;border-radius:6px;background:transparent;color:var(--text-secondary);cursor:pointer;transition:all var(--transition)}
 .tool-btn:hover{background:var(--bg-tertiary);color:var(--text-primary)}
-.icon-btn{width:36px;height:36px}
+/* Topbar icon buttons: match the compact 24×24 footprint used by
+   panel-header tool buttons so the entire app's chrome reads at one
+   icon scale. The 14×14 svg enforcement above keeps the inline
+   width/height attributes from leaking in. */
+.icon-btn{width:24px;height:24px}
+/* Language dropdown: globe icon button + popover menu listing languages. */
+.lang-dropdown{position:relative;display:inline-flex}
+.lang-dropdown-menu{
+  position:absolute;top:calc(100% + 6px);right:0;z-index:1000;
+  min-width:120px;padding:4px;
+  background:var(--bg-secondary);
+  border:0.5px solid var(--border-color);
+  border-radius:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.12);
+  display:none;flex-direction:column;gap:2px;
+}
+[data-theme="dark"] .lang-dropdown-menu{box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.lang-dropdown.open .lang-dropdown-menu{display:flex}
+.lang-dropdown-item{
+  appearance:none;border:none;background:transparent;
+  padding:6px 10px;border-radius:6px;
+  font-size:13px;color:var(--text-primary);
+  text-align:left;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  transition:background var(--transition), color var(--transition);
+}
+.lang-dropdown-item:hover{background:var(--bg-tertiary)}
+.lang-dropdown-item.active{color:var(--accent);font-weight:600}
+
+/* ===== Example picker (editor header) =====
+   Keeps the "filename" look of the original .panel-label while making
+   it a button that reveals a menu of bundled example documents. The
+   caret down-icon is the affordance; hovering the whole trigger changes
+   color just enough to hint clickability without distracting from the
+   source area. */
+.example-dropdown{position:relative;display:inline-flex}
+.example-dropdown-trigger{
+  display:inline-flex;align-items:center;gap:4px;
+  appearance:none;border:none;background:transparent;
+  padding:0;margin:0;cursor:pointer;
+  /* Inherit the panel-label typography so the visual anchor stays the
+     same as before (small, semibold, primary text color). */
+  font:inherit;color:inherit;
+  font-size:12px;font-weight:600;line-height:1.4;
+  color:var(--text-primary);
+  transition:color var(--transition);
+}
+.example-dropdown-trigger:hover{color:var(--accent)}
+.example-dropdown-caret{
+  flex-shrink:0;
+  opacity:0.55;
+  transition:transform var(--transition), opacity var(--transition);
+}
+.example-dropdown-trigger:hover .example-dropdown-caret{opacity:1}
+.example-dropdown.open .example-dropdown-caret{transform:rotate(180deg)}
+.example-dropdown-menu{
+  position:absolute;top:calc(100% + 6px);
+  /* Nudged 4px further left than the trigger so the menu's padded
+     edge visually aligns with the filename's first character
+     rather than with the trigger button's ::before box — the
+     built-in 4px inner padding on the menu would otherwise make
+     the first letter of each row look indented relative to the
+     collapsed trigger label. */
+  left:-4px;z-index:1000;
+  min-width:220px;padding:4px;
+  background:var(--bg-secondary);
+  border:0.5px solid var(--border-color);
+  border-radius:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.12);
+  display:none;flex-direction:column;gap:2px;
+}
+[data-theme="dark"] .example-dropdown-menu{box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.example-dropdown.open .example-dropdown-menu{display:flex}
+.example-dropdown-section{display:flex;flex-direction:column;gap:2px}
+.example-dropdown-section[hidden]{display:none}
+.example-dropdown-item{
+  appearance:none;border:none;background:transparent;
+  padding:6px 10px;border-radius:6px;
+  font-size:13px;color:var(--text-primary);
+  text-align:left;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  transition:background var(--transition), color var(--transition);
+  /* Make room for the inline × delete button on user-added items.
+     Built-in items have no × and will simply ignore these anchors. */
+  position:relative;
+  display:flex;align-items:center;gap:8px;
+}
+.example-dropdown-item:hover{background:var(--bg-tertiary)}
+.example-dropdown-item.active{color:var(--accent);font-weight:600}
+/* Keep the filename ellipsizing rather than wrapping; long uploads
+   shouldn't blow out the menu width. */
+.example-dropdown-item > .example-dropdown-item-name{
+  flex:1 1 auto;min-width:0;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+/* Inline delete ("×") for user-added items. Hidden by default, fades
+   in on hover of the row. Clicking it removes the entry; because
+   uploaded/new docs aren't persisted anyway, no confirm is needed. */
+.example-dropdown-item-delete{
+  flex:0 0 auto;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:4px;
+  border:none;background:transparent;cursor:pointer;
+  color:var(--text-secondary);
+  opacity:0;transition:opacity var(--transition), background var(--transition), color var(--transition);
+  padding:0;
+}
+.example-dropdown-item:hover .example-dropdown-item-delete,
+.example-dropdown-item-delete:focus-visible{opacity:1}
+.example-dropdown-item-delete:hover{background:var(--bg-primary);color:#e5484d}
+.example-dropdown-item-delete svg{width:10px;height:10px;display:block}
+/* Thin divider between sections (built-in / user / actions). */
+.example-dropdown-divider{
+  height:1px;margin:4px 6px;
+  background:var(--border-color);
+  opacity:0.6;
+}
+/* Action rows ("Upload file…", "New document…") — visually distinct
+   from example items so they read as commands, not documents. */
+.example-dropdown-action{
+  appearance:none;border:none;background:transparent;
+  padding:6px 10px;border-radius:6px;
+  font-size:13px;color:var(--text-secondary);
+  text-align:left;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  display:flex;align-items:center;gap:8px;
+  transition:background var(--transition), color var(--transition);
+}
+.example-dropdown-action:hover{background:var(--bg-tertiary);color:var(--text-primary)}
+.example-dropdown-action svg{flex-shrink:0;opacity:0.8}
+
+/* ===== New-document filename dialog =====
+   Scoped to the editor panel: the dialog is absolutely positioned
+   inside #editor-panel so its frosted backdrop only masks the raw
+   text area (never the header or the neighbouring panels). The panel's
+   own `overflow:hidden` + `border-radius:12px` naturally clip the
+   overlay, preserving the rounded-corner silhouette.
+
+   Visibility is driven by the `is-open` class (not `hidden`) so we
+   can fade the backdrop/panel in and out. A final `.is-closing` pass
+   lets the exit animation complete before JS flips `hidden`.
+
+   Timing model: the container itself does NOT fade — instead the
+   backdrop animates opacity + blur radius, and the panel animates
+   opacity + transform, both on the same 200ms curve. This keeps the
+   frosted mask and the card visually in lock-step (earlier, with the
+   container owning opacity, the browser's backdrop-filter compositor
+   warm-up would lag 1–2 frames behind the panel transform). */
+.example-name-dialog{
+  position:absolute;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.example-name-dialog.is-open{pointer-events:auto}
+.example-name-dialog[hidden]{display:none}
+/* White frosted mask, tuned to read as "the editor is briefly
+   locked" rather than a hard modal scrim. Dark theme uses the panel
+   surface colour so the blur still shows through but stays on-brand. */
+.example-name-dialog-backdrop{
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0);
+  backdrop-filter:blur(0) saturate(100%);
+  -webkit-backdrop-filter:blur(0) saturate(100%);
+  opacity:0;
+  transition:opacity 200ms ease,
+             background-color 200ms ease,
+             backdrop-filter 200ms ease,
+             -webkit-backdrop-filter 200ms ease;
+}
+.example-name-dialog.is-open .example-name-dialog-backdrop{
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  opacity:1;
+}
+[data-theme="dark"] .example-name-dialog.is-open .example-name-dialog-backdrop{
+  background:rgba(30,30,32,0.55);
+}
+.example-name-dialog-panel{
+  position:relative;
+  min-width:280px;max-width:360px;width:calc(100% - 32px);
+  padding:16px;
+  background:var(--bg-secondary);
+  border:0.5px solid var(--border-color);
+  border-radius:10px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.18);
+  display:flex;flex-direction:column;gap:12px;
+  /* Same 200ms curve as the backdrop so the card and the frost
+     arrive together; opacity matches the backdrop's fade so neither
+     element reads as "early". */
+  opacity:0;
+  transform:translateY(6px) scale(0.98);
+  transition:opacity 200ms ease,
+             transform 200ms cubic-bezier(0.22,0.61,0.36,1);
+}
+.example-name-dialog.is-open .example-name-dialog-panel{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+[data-theme="dark"] .example-name-dialog-panel{
+  box-shadow:0 12px 40px rgba(0,0,0,0.45);
+}
+@media (prefers-reduced-motion: reduce){
+  .example-name-dialog-backdrop,
+  .example-name-dialog-panel{transition:none}
+  .example-name-dialog-panel{transform:none}
+}
+.example-name-dialog-title{
+  font-size:13px;font-weight:600;color:var(--text-primary);
+}
+/* Input + locked `.md` suffix. The suffix sits inside the same
+   rounded box but is non-interactive, visually faded, and shares the
+   input's baseline so the combined control reads as one filename. */
+.example-name-dialog-input-wrap{
+  display:flex;align-items:stretch;
+  border:0.5px solid var(--border-color);border-radius:6px;
+  background:var(--bg-primary);
+  overflow:hidden;
+  transition:border-color var(--transition);
+}
+.example-name-dialog-input-wrap:focus-within{border-color:var(--accent)}
+.example-name-dialog-input{
+  flex:1 1 auto;min-width:0;
+  padding:8px 4px 8px 10px;
+  border:0;background:transparent;color:var(--text-primary);
+  font-size:13px;line-height:1.4;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  outline:none;
+}
+.example-name-dialog-suffix{
+  flex:0 0 auto;
+  display:flex;align-items:center;
+  padding:0 10px 0 0;
+  color:var(--text-secondary);opacity:0.75;
+  font-size:13px;line-height:1.4;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  user-select:none;pointer-events:none;
+}
+.example-name-dialog-actions{
+  display:flex;justify-content:flex-end;gap:8px;
+}
+.example-name-dialog-btn{
+  appearance:none;
+  padding:6px 14px;border-radius:6px;
+  border:0.5px solid var(--border-color);
+  background:var(--bg-primary);color:var(--text-primary);
+  font-size:12px;font-weight:500;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background var(--transition), border-color var(--transition), color var(--transition);
+}
+.example-name-dialog-btn:hover{background:var(--bg-tertiary)}
+.example-name-dialog-btn.primary{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+}
+.example-name-dialog-btn.primary:hover{filter:brightness(1.05)}
+.example-name-dialog-btn.primary:disabled{
+  opacity:0.5;cursor:not-allowed;filter:none;
+}
+
+/* ===== Image-export dialog =====
+   Same motion + overlay treatment as the new-doc dialog, but
+   scoped to .preview-panel and with a second row for DPR selection
+   and a status/progress line for multi-segment exports. */
+.export-image-dialog{
+  position:absolute;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.export-image-dialog.is-open{pointer-events:auto}
+.export-image-dialog[hidden]{display:none}
+.export-image-dialog-backdrop{
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0);
+  backdrop-filter:blur(0) saturate(100%);
+  -webkit-backdrop-filter:blur(0) saturate(100%);
+  opacity:0;
+  transition:opacity 200ms ease,
+             background-color 200ms ease,
+             backdrop-filter 200ms ease,
+             -webkit-backdrop-filter 200ms ease;
+}
+.export-image-dialog.is-open .export-image-dialog-backdrop{
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  opacity:1;
+}
+[data-theme="dark"] .export-image-dialog.is-open .export-image-dialog-backdrop{
+  background:rgba(30,30,32,0.55);
+}
+.export-image-dialog-panel{
+  position:relative;
+  min-width:300px;max-width:380px;width:calc(100% - 32px);
+  padding:16px;
+  background:var(--bg-secondary);
+  border:0.5px solid var(--border-color);
+  border-radius:10px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.18);
+  display:flex;flex-direction:column;gap:12px;
+  opacity:0;
+  transform:translateY(6px) scale(0.98);
+  transition:opacity 200ms ease,
+             transform 200ms cubic-bezier(0.22,0.61,0.36,1);
+}
+.export-image-dialog.is-open .export-image-dialog-panel{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+[data-theme="dark"] .export-image-dialog-panel{
+  box-shadow:0 12px 40px rgba(0,0,0,0.45);
+}
+@media (prefers-reduced-motion: reduce){
+  .export-image-dialog-backdrop,
+  .export-image-dialog-panel{transition:none}
+  .export-image-dialog-panel{transform:none}
+}
+.export-image-dialog-title{
+  font-size:13px;font-weight:600;color:var(--text-primary);
+}
+.export-image-dialog-field{
+  display:flex;flex-direction:column;gap:6px;
+}
+.export-image-dialog-label{
+  font-size:11px;font-weight:500;color:var(--text-secondary);
+  letter-spacing:0.3px;
+}
+/* File name input + locked ".png" suffix, mirroring new-doc dialog. */
+.export-image-dialog-input-wrap{
+  display:flex;align-items:stretch;
+  border:0.5px solid var(--border-color);border-radius:6px;
+  background:var(--bg-primary);
+  overflow:hidden;
+  transition:border-color var(--transition);
+}
+.export-image-dialog-input-wrap:focus-within{border-color:var(--accent)}
+.export-image-dialog-input{
+  flex:1 1 auto;min-width:0;
+  padding:8px 4px 8px 10px;
+  border:0;background:transparent;color:var(--text-primary);
+  font-size:13px;line-height:1.4;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  outline:none;
+}
+.export-image-dialog-suffix{
+  flex:0 0 auto;
+  display:flex;align-items:center;
+  padding:0 10px 0 0;
+  color:var(--text-secondary);opacity:0.75;
+  font-size:13px;line-height:1.4;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  user-select:none;pointer-events:none;
+}
+/* DPR segmented control */
+.export-image-dialog-dpr{
+  display:inline-flex;
+  border:0.5px solid var(--border-color);border-radius:6px;
+  background:var(--bg-primary);
+  overflow:hidden;
+  align-self:flex-start;
+}
+.export-image-dialog-dpr-btn{
+  appearance:none;border:0;outline:none;
+  padding:6px 14px;
+  background:transparent;color:var(--text-secondary);
+  font-size:12px;font-weight:500;
+  font-variant-numeric:tabular-nums;
+  cursor:pointer;
+  transition:background var(--transition),color var(--transition);
+  border-right:0.5px solid var(--border-color);
+}
+.export-image-dialog-dpr-btn:last-child{border-right:0}
+.export-image-dialog-dpr-btn:hover{background:var(--bg-tertiary);color:var(--text-primary)}
+.export-image-dialog-dpr-btn.active{
+  background:var(--accent);color:#fff;
+}
+.export-image-dialog-dpr-btn.active:hover{background:var(--accent);filter:brightness(1.05)}
+/* Progress / status line — kept empty by default so the row collapses. */
+.export-image-dialog-status{
+  min-height:14px;
+  font-size:11px;line-height:1.4;
+  color:var(--text-secondary);
+  font-variant-numeric:tabular-nums;
+}
+.export-image-dialog-status.is-error{color:#d14d4d}
+.export-image-dialog-actions{
+  display:flex;justify-content:flex-end;gap:8px;
+}
+.export-image-dialog-btn{
+  appearance:none;
+  padding:6px 14px;border-radius:6px;
+  border:0.5px solid var(--border-color);
+  background:var(--bg-primary);color:var(--text-primary);
+  font-size:12px;font-weight:500;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background var(--transition),border-color var(--transition),color var(--transition);
+}
+.export-image-dialog-btn:hover{background:var(--bg-tertiary)}
+.export-image-dialog-btn.primary{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+}
+.export-image-dialog-btn.primary:hover{filter:brightness(1.05)}
+.export-image-dialog-btn.primary:disabled{
+  opacity:0.5;cursor:not-allowed;filter:none;
+}
+/* Loading state: the primary button's label is SWAPPED for a
+   compact "spinner + status text" pair, shown INSIDE the button
+   itself. JS handles the text swap (`正在导出` / Exporting…), CSS
+   handles the spinner + layout. */
+.export-image-dialog-btn.primary.is-loading{
+  /* Spinner + label sit side-by-side, with a small gap. Button
+     keeps its natural padding. */
+  gap:6px;
+}
+.export-image-dialog-btn.is-loading .export-image-dialog-btn-spinner{
+  display:inline-block;
+}
+/* Loading state shows ONLY the spinner — the empty label span would
+   otherwise still reserve a flex slot and the sibling `gap:6px`
+   would push the spinner off the button's horizontal centre by 3px
+   (half of the gap). Hiding the label drops it out of flex
+   distribution so `justify-content:center` aligns the spinner to
+   the true middle of the button.
+   JS (export dialog handler) also clears `okLabelEl.textContent`
+   during loading and locks the button's width to its pre-loading
+   measurement, so hiding the label here does NOT make the button
+   shrink. */
+.export-image-dialog-btn.is-loading .export-image-dialog-btn-label{
+  display:none;
+}
+/* Base spinner (hidden outside of is-loading state). */
+.export-image-dialog-btn-spinner{
+  display:none;
+  width:12px;height:12px;flex-shrink:0;
+  border:1.5px solid rgba(255,255,255,0.55);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:export-image-spin 0.8s linear infinite;
+}
+.export-image-dialog-btn.is-loading:hover{filter:none}
+@keyframes export-image-spin{
+  to{transform:rotate(360deg)}
+}
+.export-image-dialog-btn:disabled{opacity:0.5;cursor:not-allowed}
+/* Primary during loading reads as "busy", but we keep the system
+   cursor neutral — using `cursor:progress` would make the whole
+   page's cursor render as a spinning wheel while the user is still
+   free to move the pointer around, which is a visual distraction.
+   A plain `default` cursor keeps the interaction focused on the
+   in-button spinner. */
+.export-image-dialog-btn.primary.is-loading,
+.export-image-dialog-btn.primary.is-loading:disabled{
+  opacity:1;
+  cursor:default;
+}
 
 /* ===== Layout ===== */
-.editor-container{display:flex;height:calc(100vh - 44px);overflow:hidden}
-.panel{display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.editor-panel{flex:1}
-.preview-panel{flex:1}
-.panel-header{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;background:var(--bg-secondary);border-bottom:1px solid var(--border-light);flex-shrink:0;height:32px;min-height:32px}
-.char-count,.width-label{font-weight:400;font-size:11px;color:var(--text-secondary);text-transform:none;letter-spacing:0}
+.editor-container{display:flex;flex:1;min-height:0;overflow:hidden;padding:0 12px 12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));gap:12px;background:var(--bg-page);position:relative}
+.panel{display:flex;flex-direction:column;min-width:0;overflow:hidden;border-radius:12px;background:var(--bg-secondary);box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+[data-theme="dark"] .panel{box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+/* Editor panel: flex-based width, user-resizable via #divider. Default
+   share is 1:1 against the preview panel (see .preview-panel below). In
+   multi-screen mode the ratio switches to 1:2 (see body.multi-screen
+   rules further down) to give the virtual screens more room. The
+   Settings/Inspector panel is the only fixed-width side column — see
+   --side-panel-width and the .inspector-panel rules. */
+.editor-panel{flex:1 1 50%;min-width:0;position:relative;transition:flex-basis 0.32s cubic-bezier(0.4,0,0.2,1),flex-grow 0.32s cubic-bezier(0.4,0,0.2,1)}
+.preview-panel{flex:1 1 50%;min-width:0;position:relative;transition:flex-basis 0.32s cubic-bezier(0.4,0,0.2,1),flex-grow 0.32s cubic-bezier(0.4,0,0.2,1)}
+/* Disabled state for non-edited screen while Settings targets another.
+   Dim the content but keep it visible as visual context. */
+.panel-disabled{opacity:0.4;pointer-events:none;filter:saturate(0.6)}
+/* Hide the add-screen control entirely in mobile (stacked) layout. */
+@media(max-width:900px){
+  #screen-add-btn{display:none !important}
+}
+/* Editor-panel hidden mode: when editing a screen via its own gear, the
+   editor slides out to the left so only the preview + inspector remain
+   visible. flex-basis:0 collapses the column, and the negative transform
+   gives the slide-out motion. */
+.editor-panel.editor-hidden{
+  flex:0 0 0 !important;min-width:0 !important;
+  transform:translateX(-100%);
+  opacity:0;pointer-events:none;
+  overflow:hidden;
+  /* Smooth slide-out/in when Settings is opened/closed in multi-screen
+     mode. Mirrors the inspector panel's timing. */
+  transition:flex-basis 0.32s cubic-bezier(0.4,0,0.2,1),
+             flex-grow 0.32s cubic-bezier(0.4,0,0.2,1),
+             min-width 0.32s cubic-bezier(0.4,0,0.2,1),
+             transform 0.32s cubic-bezier(0.4,0,0.2,1),
+             opacity 0.2s ease;
+}
+.editor-container.editor-hidden-mode #divider{display:none !important}
+/* When the editor slides out, the 12px flex gap between editor-panel
+   and preview-panel would otherwise leave preview-panel offset 12px
+   from the container's left padding — a visible mismatch against the
+   topbar's right inset.
+   NOTE: `.editor-container` has a SINGLE `gap` that applies between
+   every pair of adjacent children, so collapsing it with `gap:0`
+   would also eat the gap between preview-panel and the inspector
+   panel (via divider2), which makes preview visually overlap the
+   Inspector. Instead, keep the container gap intact and pull the
+   preview-panel left by exactly one gap so only THAT edge is
+   absorbed. */
+.editor-container.editor-hidden-mode .preview-panel{
+  margin-left:-12px;
+}
+/* Symmetry guard: when the Inspector is collapsed the fixed `gap:12px`
+   on `.editor-container` still reserves 12px between preview-panel
+   and the (zero-width) inspector, leaving the preview visually 12px
+   short of the container's right padding. Without this rule the
+   editor-panel sits 12px from the window's left edge while the
+   preview-panel sits 12+12=24px from the right edge — the asymmetry
+   the user reported.
+   A negative `margin-right:-12px` on preview-panel absorbs that dead
+   gap, but ONLY while the inspector is hidden; once it opens the
+   normal flex gap re-establishes the 12px inter-panel rhythm. */
+.editor-container .preview-panel:has(~ .inspector-panel.collapsed){
+  margin-right:-12px;
+}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 8px 12px;font-size:12px;font-weight:600;line-height:1.4;color:var(--text-secondary);letter-spacing:0.3px;background:var(--bg-secondary);border-bottom:0.5px solid var(--border-light);flex-shrink:0;position:relative;border-radius:12px 12px 0 0;box-sizing:border-box}
+/* Header buttons shouldn't expand height — use negative vertical margin to keep header at text-line height */
+.panel-header .tool-btn{width:24px !important;height:24px !important;border-radius:50% !important;background:transparent !important;margin:-3px 0;flex-shrink:0}
+.panel-header .tool-btn svg{width:14px;height:14px}
+.panel-header .panel-label{font-size:12px;font-weight:600;line-height:1.4;color:var(--text-primary)}
+
+/* Preview panel header: 3-column grid so the "Preview" label sits flush
+   left, the mode selector is centered in the header, and the icon
+   group stays anchored to the right. Both side cells reserve equal
+   weight (1fr) so the middle column is optically centered. */
+.preview-panel > .panel-header{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  column-gap:16px;
+}
+.preview-panel > .panel-header > .preview-panel-label{
+  justify-self:start;
+}
+.preview-panel > .panel-header > .preview-header-left{
+  justify-self:center;
+  flex:0 0 auto;
+}
+.preview-panel > .panel-header > .preview-header-right{
+  justify-self:end;
+}
+
+/* Preview header left group */
+.preview-header-left{display:flex;align-items:center;gap:16px;min-width:0;flex:1}
+/* Preview header right group: icon buttons with uniform gap. */
+.preview-header-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+
+/* Preview mode tabs — inline, left-aligned next to Preview label */
+.preview-modes{
+  display:flex;align-items:center;gap:16px;
+}
+.mode-btn{
+  border:none;background:transparent;
+  font-size:12px;font-weight:600;letter-spacing:0.3px;
+  color:rgba(0,0,0,0.2);cursor:pointer;
+  padding:0;border-radius:0;
+  transition:color 0.15s ease;
+  line-height:1.4;
+}
+.mode-btn:hover{color:rgba(0,0,0,0.4)}
+.mode-btn.active{
+  color:var(--accent);
+}
+
+/* Dropdown mode selector — no container styling */
+.preview-modes-dropdown{display:none;position:relative;z-index:600}
+.mode-dropdown-trigger{
+  display:flex;align-items:center;gap:4px;
+  border:none;background:transparent;
+  padding:0;cursor:pointer;
+  font-size:12px;font-weight:600;letter-spacing:0.3px;
+  color:var(--text-primary);line-height:1.4;
+}
+.mode-dropdown-trigger svg{flex-shrink:0;transition:transform 0.15s ease;color:var(--text-secondary)}
+.mode-dropdown-trigger.open svg{transform:rotate(180deg)}
+.mode-dropdown-menu{
+  display:none;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);
+  background:var(--bg-secondary);border-radius:8px;padding:4px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:610;
+  min-width:100%;
+}
+[data-theme="dark"] .mode-dropdown-menu{box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.mode-dropdown-menu.open{display:flex;flex-direction:column;gap:0}
+/* Backdrop to block interactions when dropdown open */
+.mode-dropdown-backdrop{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  z-index:599;background:transparent;
+}
+.mode-dropdown-backdrop.open{display:block}
+/* JS-driven tabs/dropdown swap */
+.preview-modes.hidden{display:none !important}
+.preview-modes-dropdown.shown{display:block}
+.mode-dropdown-item{
+  border:none;background:transparent;
+  font-size:12px;font-weight:600;letter-spacing:0.3px;
+  color:rgba(0,0,0,0.2);cursor:pointer;
+  padding:6px 12px;border-radius:4px;
+  transition:color 0.15s ease;
+  line-height:1.4;
+  text-align:left;white-space:nowrap;
+}
+.mode-dropdown-item:hover{color:rgba(0,0,0,0.4)}
+.mode-dropdown-item.active{
+  color:var(--accent);
+}
+/* Dark mode: lighter grays for unselected */
+[data-theme="dark"] .mode-btn{color:rgba(255,255,255,0.2)}
+[data-theme="dark"] .mode-btn:hover{color:rgba(255,255,255,0.4)}
+[data-theme="dark"] .mode-btn.active{color:var(--accent)}
+[data-theme="dark"] .mode-dropdown-item{color:rgba(255,255,255,0.2)}
+[data-theme="dark"] .mode-dropdown-item:hover{color:rgba(255,255,255,0.4)}
+[data-theme="dark"] .mode-dropdown-item.active{color:var(--accent)}
+
+/* The "BETA" marker used to sit on the chats/files mode buttons as
+   a ::after pill. It has been promoted to a site-level tag next to
+   the topbar logo (.topbar-beta), so these rules are intentionally
+   empty — kept as a stub for context in case the old positioning is
+   ever needed again. */
 
 /* ===== Editor ===== */
 .editor-body{display:flex;flex:1;overflow:hidden;position:relative}
 .line-numbers{
-  width:52px;flex-shrink:0;padding:20px 6px 20px 0;
+  width:52px;flex-shrink:0;padding:0;
   font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
   font-size:12px;line-height:1.4;color:var(--text-secondary);
   text-align:right;user-select:none;overflow:hidden;
-  background:var(--bg-secondary);border-right:1px solid var(--border-light);
+  background:var(--bg-secondary);border-right:0.5px solid var(--border-light);
+  position:relative;
+}
+.line-numbers-inner{
+  padding:20px 6px 20px 0;
+  will-change:transform;
 }
 .line-numbers .line-num{
-  display:flex;align-items:center;justify-content:flex-end;
-  height:calc(14px * 1.4);
+  display:flex;align-items:flex-start;justify-content:flex-end;
+  height:20px;
   padding-right:4px;
 }
-/* Arrow column: left of line numbers */
-.line-numbers .line-num .source-arrow{
-  display:flex;align-items:center;justify-content:center;
-  width:10px;margin-right:2px;flex-shrink:0;
-  opacity:0;transition:opacity 0.15s ease;
-}
-.line-numbers .line-num .source-arrow svg{
-  width:5px;height:7px;display:block;
-}
-.line-numbers .line-num.active .source-arrow{opacity:1}
-.line-numbers .line-num.active .num-text{color:var(--accent)}
-.num-text{min-width:24px;text-align:right}
-#editor{flex:1;width:100%;padding:20px 12px 20px 12px;border:none;outline:none;resize:none;font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;font-size:14px;line-height:1.4;color:var(--text-primary);background:var(--editor-bg);tab-size:2;border-radius:0 0 8px 0}
+.num-text{min-width:24px;text-align:right;height:20px;line-height:20px}
+#editor{position:absolute;inset:0;width:100%;height:100%;padding:20px 12px 20px 12px;border:none;outline:none;resize:none;font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;font-size:14px;line-height:20px;color:var(--text-primary);background:transparent;tab-size:2;border-radius:0;scrollbar-width:none;-ms-overflow-style:none;z-index:2;overscroll-behavior:none}
+#editor::-webkit-scrollbar{display:none;width:0;height:0}
 #editor::placeholder{color:var(--text-secondary);opacity:0.6}
 
-/* ===== Divider ===== */
-.divider{width:6px;cursor:col-resize;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
-.divider::before{content:'';position:absolute;top:0;left:-4px;right:-4px;bottom:0;z-index:5}
-.divider-line{width:2px;height:40px;border-radius:1px;background:var(--divider-color);transition:all var(--transition)}
-.divider:hover .divider-line,.divider.active .divider-line{background:var(--divider-hover);height:60px;width:3px}
+/* Editor overlay: a pixel-accurate copy of the source text, rendered below
+   the transparent-background textarea. Idle: the overlay stays hidden
+   (color:transparent) so only the textarea shows. When a preview element
+   is selected, we (1) recolor the textarea text to transparent and (2)
+   switch the overlay to the normal text color so the selected lines can
+   stand out in accent green against the rest of the source. Clearing the
+   selection reverts both states, and the overlay is invisible again. */
+.editor-wrap{flex:1;position:relative;display:flex;min-width:0}
+.editor-overlay{
+  position:absolute;inset:0;padding:20px 12px 20px 12px;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  font-size:14px;line-height:20px;tab-size:2;
+  color:transparent;background:transparent;
+  white-space:pre-wrap;word-break:normal;overflow-wrap:break-word;
+  pointer-events:none;z-index:1;
+  overflow:hidden;
+}
+.editor-overlay.pinned{color:var(--text-primary)}
+.editor-overlay .source-highlight{color:var(--accent)}
+.editor-overlay .overlay-inner{will-change:transform}
+/* Pinned state: textarea text goes transparent so the overlay's full copy
+   shows through (selected lines green, rest normal). The caret remains
+   visible (caret-color is independent) and editing works as usual. */
+#editor.source-pinned{color:transparent}
+
+/* Whitespace overlay: mirrors the textarea's layout and, when text is
+   selected, renders each selected whitespace character as a visible
+   middle-dot (·) / arrow (→) so the user can tell how many spaces/tabs
+   are inside the selection. All other characters are kept transparent so
+   they don't double up with the real textarea text. */
+.editor-ws-overlay{
+  position:absolute;inset:0;padding:20px 12px 20px 12px;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  font-size:14px;line-height:20px;tab-size:2;
+  color:transparent;background:transparent;
+  white-space:pre-wrap;word-break:normal;overflow-wrap:break-word;
+  pointer-events:none;z-index:3;
+  overflow:hidden;
+}
+.editor-ws-overlay .ws-inner{will-change:transform}
+.editor-ws-overlay .ws-dot{color:#00c375}
+
+/* ===== Divider =====
+   #divider (between Editor and Preview) is a drag-to-resize grabber: the
+   user adjusts the editor/preview width ratio with it, and double-clicks
+   reset to the default (1:1 single-screen, 1:2 multi-screen).
+   There is no divider between Preview and the Settings (Inspector) panel —
+   the Settings panel has a fixed width (--side-panel-width) and slides in
+   as an overlay-style column without any grabber. */
+/* The divider sits in the 8px flex-gap between editor and preview
+   panels. To get an 8px panel-to-panel gap (matching every other
+   inter-panel spacing in the app), the divider must NOT occupy
+   flex space itself — otherwise flex would reserve its width PLUS
+   a gap on each side. We pull it out of the flow with
+   `position:absolute` and let its ::before hit-zone fatten the
+   drag target back to 16px wide. The 2px visual line lives in
+   `.divider-line`, centred in the 8px gap.
+   Positioning: JS (see `initDividerGeometry` in app.js) writes
+   `--divider-x` on the container in px, measured from the
+   container's left padding edge — updated whenever the editor
+   resizes or the viewport changes. A CSS-only fallback (left:50%)
+   keeps the divider visible before JS runs. */
+.divider{
+  position:absolute;top:0;bottom:0;
+  left:var(--divider-x, 50%);
+  width:4px;margin-left:-2px;
+  cursor:col-resize;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;z-index:5;
+}
+.divider.hidden{display:none}
+/* Hit-zone: 16px wide invisible band so the grabber is easy to
+   catch; the visible bar stays 2px. */
+.divider::before{content:'';position:absolute;top:0;left:-6px;right:-6px;bottom:0;z-index:5}
+.divider-line{width:2px;height:32px;border-radius:999px;background:var(--grabber);transition:all var(--transition)}
+.divider:hover .divider-line,.divider.active .divider-line{background:var(--divider-hover);height:48px;width:3px}
 
 /* ===== Preview ===== */
 .preview-bg{
-  flex:1;overflow-y:auto;padding:24px;
-  background:var(--preview-bg);
-  display:flex;justify-content:center;align-items:flex-start;
+  flex:1;overflow:hidden;padding:48px 24px;
+  background:var(--bg-secondary);
+  display:flex;justify-content:center;align-items:center;
   position:relative;
-  transition:background var(--transition);
-  border-radius:0 0 8px 0;
+  border-radius:0 0 12px 12px;
+}
+[data-theme="dark"] .preview-bg{background:var(--bg-secondary)}
+
+/* Outer container: the virtual screen. 48px rounded corners (shared across
+   AI / Chats / Files modes). Width is driven by the parent .screen-wrap
+   (which is what JS/grabbers resize); .preview-outer itself just fills
+   the wrap. It keeps overflow:hidden so the rounded corners clip the
+   preview-card contents. */
+.preview-outer{
+  width:100%;min-width:0;max-width:none;
+  flex-shrink:1;flex-grow:0;
+  align-self:stretch;
+  border-radius:48px;
+  background:var(--preview-bg);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  position:relative;
+  border:4px solid rgba(0,0,0,0.25);
+  transition:border-color 0.2s ease;
+}
+[data-theme="dark"] .preview-outer{
+  border-color:rgba(255,255,255,0.25);
+}
+/* Multi-screen spacing between virtual screens is applied on the
+   .screens-container (see that rule block). The outer row itself just
+   keeps its natural horizontal flow. */
+/* Focused screen (being edited via Settings) gets the accent outline. */
+.preview-outer.screen-focused{
+  border-color:#00c375 !important;
 }
 
+/* ===== Per-screen external decorations =====
+   Each screen has a single external control: a numeric badge centered
+   above it. Hovering the badge swaps the number for a close ×; primary
+   screen's badge is not closable. The badge lives outside the
+   .preview-outer (which clips via overflow:hidden) but inside
+   .screen-wrap (which doesn't). */
+/* ===== Screens container (groups all virtual screens) =====
+   Single-screen: the container just wraps the one .screen-wrap and
+   inherits a fixed/resizable width (400px default) driven by the
+   shared side grabbers.
+   Multi-screen: the container fills the available preview-bg width
+   (minus grabber columns) so screens divide it evenly. If space is
+   insufficient, each screen still respects its min-width via the
+   container's own min-width and preview-bg scrolls horizontally. */
+.screens-container{
+  display:flex;flex-direction:row;
+  align-self:stretch;
+  flex-shrink:1;flex-grow:0;
+  /* Default width mirrors the legacy single-screen default. When more
+     screens are added JS bumps this up so each screen keeps its own
+     target size. */
+  width:var(--screens-total-width, 400px);
+  min-width:320px;max-width:calc(100% - 56px);
+}
+.preview-outer-row[data-screen-count="2"] .screens-container,
+.preview-outer-row[data-screen-count="3"] .screens-container{
+  /* Multi-screen: size is still driven by grabbers (explicit width on
+     the element via JS). Enforce per-screen minimum as the floor. */
+  max-width:none;flex-shrink:0;
+  gap:16px;
+}
+
+.screen-wrap{
+  position:relative;display:flex;
+  align-self:stretch;
+  flex:1 1 0;min-width:0;
+  /* Re-declare the derived font-size scale at this scope so that an
+     inline override of --fs-base on this very element (written by the
+     Settings panel's "Base font size" stepper) actually cascades into
+     the heading / code sizes. CSS custom properties with calc() are
+     resolved at the scope where they're declared: the copies on :root
+     above are frozen to :root's --fs-base (17px) and will not update
+     when a descendant overrides --fs-base. These duplicate declarations
+     here re-resolve against whatever --fs-base is effective on this
+     .screen-wrap (inline override → :root fallback). */
+  --fs-h1: calc(var(--fs-base) + 4px);
+  --fs-h2: calc(var(--fs-base) + 2px);
+  --fs-h3: var(--fs-base);
+  --fs-h4: var(--fs-base);
+  --fs-h5: var(--fs-base);
+  --fs-h6: var(--fs-base);
+  --fs-code: calc(var(--fs-base) - 2px);
+  --fs-code-small: calc(var(--fs-base) - 4px);
+  --fs-lang-label: calc(var(--fs-base) - 2px);
+}
+.screen-wrap>.preview-outer{
+  width:100%;min-width:0;max-width:none;
+  height:100%;
+}
+
+/* Numeric badge: circle centered above the virtual screen. Acts as a
+   button in multi-screen mode (hover swaps the digit for an ×; clicking
+   removes that screen). Primary screen (index 1) is not removable. */
+.screen-badge{
+  position:absolute;display:none;
+  top:-34px;left:50%;transform:translateX(-50%);
+  width:22px;height:22px;border-radius:50%;
+  border:none;padding:0;
+  background:var(--bg-tertiary);color:var(--text-primary);
+  align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;line-height:1;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  cursor:default;user-select:none;
+  overflow:hidden;
+  z-index:12;
+  transition:background 0.15s ease,color 0.15s ease,transform 0.15s ease;
+}
+.screen-badge-num,.screen-badge-close{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.15s ease;
+  pointer-events:none;
+}
+.screen-badge-close{opacity:0}
+.screen-badge-close svg{display:block;width:10px;height:10px}
+/* Every screen is closable when in multi-screen mode. Single-screen
+   mode hides the badge entirely (no way to close the last screen). */
+.preview-outer-row[data-screen-count="2"] .screen-badge,
+.preview-outer-row[data-screen-count="3"] .screen-badge{
+  cursor:pointer;
+}
+.preview-outer-row[data-screen-count="2"] .screen-badge:hover .screen-badge-num,
+.preview-outer-row[data-screen-count="3"] .screen-badge:hover .screen-badge-num{opacity:0}
+.preview-outer-row[data-screen-count="2"] .screen-badge:hover .screen-badge-close,
+.preview-outer-row[data-screen-count="3"] .screen-badge:hover .screen-badge-close{opacity:1}
+.preview-outer-row[data-screen-count="2"] .screen-badge:hover,
+.preview-outer-row[data-screen-count="3"] .screen-badge:hover{
+  background:#e5484d;color:#fff;
+}
+/* While the Settings panel is open, the badge becomes a pure
+   edit-target selector — the destructive × affordance is hidden on
+   hover and the red background is suppressed. The click handler in
+   app.js also short-circuits removeScreen() in this state. */
+body.settings-open .preview-outer-row[data-screen-count="2"] .screen-badge:hover .screen-badge-num,
+body.settings-open .preview-outer-row[data-screen-count="3"] .screen-badge:hover .screen-badge-num{opacity:1}
+body.settings-open .preview-outer-row[data-screen-count="2"] .screen-badge:hover .screen-badge-close,
+body.settings-open .preview-outer-row[data-screen-count="3"] .screen-badge:hover .screen-badge-close{opacity:0}
+body.settings-open .preview-outer-row[data-screen-count="2"] .screen-badge:hover,
+body.settings-open .preview-outer-row[data-screen-count="3"] .screen-badge:hover{
+  background:var(--bg-tertiary);color:var(--text-primary);
+}
+/* Focused screen (being edited via Settings) gets the accent badge. */
+.screen-wrap.screen-focused .screen-badge{
+  background:#00c375;color:#fff;
+}
+/* Keep the focused-screen accent color on hover even while Settings is
+   open; without this the selector above would flatten it to neutral. */
+body.settings-open .preview-outer-row[data-screen-count="2"] .screen-wrap.screen-focused .screen-badge:hover,
+body.settings-open .preview-outer-row[data-screen-count="3"] .screen-wrap.screen-focused .screen-badge:hover{
+  background:#00c375;color:#fff;
+}
+
+/* "Add screen" tool-button, sitting in .preview-header-right to the
+   LEFT of the export-camera button. Shares base visuals with other
+   .tool-btn icon-btns — only the "at cap" disabled look and the
+   mobile-hide rule are specific.
+   When `.preview-outer-row[data-at-max="1"]` is set (3 screens,
+   current cap) the button is dimmed and non-interactive, mirroring
+   the previous grabber-embedded "+" behaviour. */
+body:has(.preview-outer-row[data-at-max="1"]) #screen-add-btn{
+  opacity:0.35;pointer-events:none;
+}
+
+/* Clicking a screen to change the Settings target: the currently
+   focused screen uses the accent outline as before. */
+body.multi-screen #settings-open-btn{display:inline-flex}
+
+/* Visibility rules — driven by data-screen-count on the row. */
+.preview-outer-row[data-screen-count="2"] .screen-badge,
+.preview-outer-row[data-screen-count="3"] .screen-badge{
+  display:flex;
+}
+
+/* Card-handles (top/bottom/left/right) behave the same across single
+   and multi-screen modes: they operate on the screens-container. */
+
+/* When the header gear opens Settings, we may hide extras of this row;
+   but per latest spec the gear stays in the header and targets the
+   memorized screen. No extra CSS needed here. */
+
+/* Clicking a screen to change the Settings target: the currently
+   focused screen uses the accent outline as before. */
+body.multi-screen #settings-open-btn{display:inline-flex}
+/* Multi-screen: even more room above/below so the numeric badge and
+   bottom grabber have generous breathing space against the panel
+   edges. */
+body.multi-screen .preview-bg{padding-top:72px;padding-bottom:56px}
+
+/* ===== Multi-screen: allow horizontal scroll of the preview region =====
+   When the screens container's total width exceeds the preview-panel's
+   available space, preview-bg itself scrolls horizontally. This keeps
+   the surrounding layout stable (editor stays in place at its flex
+   share, no page-level horizontal scroll).
+   Editor : Preview share ratio switches from the default 1:1 to 1:2 so
+   there's more room for the multiple virtual screens. */
+body.multi-screen .editor-panel{
+  flex:1 1 0;
+  min-width:0;
+}
+body.multi-screen .preview-panel{
+  flex:2 1 0;
+  /* Guarantee the preview panel always has enough width to show at
+     least one virtual screen with its side grabbers, even when the
+     Inspector is open and the editor has slid out. Without this floor
+     the flex-shrink applied alongside `min-width:0` would let the
+     Inspector's fixed 280px column squash the preview panel down to
+     a few pixels (the symptom is the gear button visually touching
+     the "设置 · 屏幕 1" title bar). The floor = single-screen minimum
+     (320px) + both grabbers (~28px) + panel padding/border. */
+  min-width:400px;
+}
+body.multi-screen .preview-bg{
+  /* Multi-screen: horizontal scroll inside the preview region so extra
+     screens can be reached without disturbing the surrounding layout.
+     Vertical stays contained so virtual screens don't spill over the
+     panel bounds. Centering is driven by `margin:auto` on the inner
+     wrapper (see below) instead of `justify-content:center`, which
+     would clip content to the left when it overflows the flex
+     container. */
+  overflow-x:auto;overflow-y:hidden;
+  justify-content:flex-start;
+}
+body.multi-screen .preview-outer-wrap{
+  /* Content-sized so preview-bg can scroll; margin:auto keeps the
+     wrap centered when there's extra space, and collapses to 0 when
+     the wrap is wider than preview-bg — at which point content aligns
+     to the left edge and the full range is reachable via scroll. */
+  width:max-content;
+  margin-left:auto;margin-right:auto;
+}
+body.multi-screen .preview-outer-row{
+  width:max-content;
+}
+/* Multi-screen: hide the top grabber while the design is under
+   iteration. Bottom/left/right remain for width+height adjustments. */
+body.multi-screen #card-handle-top{display:none !important}
+/* Horizontal scrollbar for the preview-bg in multi-screen mode. */
+body.multi-screen .preview-bg::-webkit-scrollbar{
+  height:8px;
+}
+body.multi-screen .preview-bg::-webkit-scrollbar-thumb{
+  background:var(--scrollbar-thumb);border-radius:4px;
+}
+
+/* Card (bubble): fills outer, scrollable */
+/* Card (bubble): fills outer, scrollable */
 .preview-card{
-  width:400px;max-width:calc(100% - 56px);min-width:160px;
-  flex-shrink:0;flex-grow:0;
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding:16px;padding-top:64px;padding-bottom:64px;
+  position:relative;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.preview-card::-webkit-scrollbar{display:none}
+
+/* Bubble tip on card — via ::before on markdown-body */
+.markdown-body{
+  font-size:var(--fs-base);line-height:var(--lh-body);word-wrap:break-word;
+  color:var(--pv-text);background:var(--pv-card-bg);
+  border-radius:8px;padding:8px 12px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  line-break:strict;
+  overflow-wrap:break-word;
+  word-break:normal;
+  position:relative;
+  overflow:visible;
+  max-width:640px;
+}
+.markdown-body::before{
+  content:'';
+  position:absolute;
+  top:10px;left:-6px;
+  width:14px;height:18px;
+  pointer-events:none;
+  z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg width='14' height='18' viewBox='0 0 14 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.00026 13.8284C4.75043 14.5786 5.17188 15.596 5.17188 16.6569V18H13.1719V0H5.17188V1.34318C5.17188 2.40403 4.75046 3.42142 4.00034 4.17157L0.586069 7.58594C-0.194969 8.367 -0.194951 9.63333 0.586109 10.4144L4.00026 13.8284Z' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size:14px 18px;
+  background-repeat:no-repeat;
+}
+[data-theme="dark"] .markdown-body::before{
+  background-image:url("data:image/svg+xml,%3Csvg width='14' height='18' viewBox='0 0 14 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.00026 13.8284C4.75043 14.5786 5.17188 15.596 5.17188 16.6569V18H13.1719V0H5.17188V1.34318C5.17188 2.40403 4.75046 3.42142 4.00034 4.17157L0.586069 7.58594C-0.194969 8.367 -0.194951 9.63333 0.586109 10.4144L4.00026 13.8284Z' fill='%23252528'/%3E%3C/svg%3E");
+}
+/* Files mode: bubble flush with virtual screen — no horizontal gap, no tip */
+.preview-panel[data-mode="files"] .preview-card{padding-left:0;padding-right:0}
+.preview-panel[data-mode="files"] .markdown-body{max-width:100%}
+.preview-panel[data-mode="files"] .markdown-body::before{display:none}
+
+/* When the editor is empty, hide the bubble so the virtual screen reads
+   as an empty device mockup instead of an empty speech balloon. */
+.preview-panel.is-empty .markdown-body{display:none}
+/* Vertical wrap for top/bottom handles + preview-outer.
+   Both wrap and row fill the full available width so the preview-outer
+   inside can honor its max-width relative to the shrinking preview-bg
+   area, not relative to its own content width. */
+.preview-outer-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  width:100%;height:100%;justify-content:center;
+}
+.preview-outer-row{
+  display:flex;align-items:center;
+  width:100%;flex:1;min-height:0;justify-content:center;
 }
 
-/* Resize handles - sticky center */
 .card-handle{
-  position:sticky;top:50%;
-  width:20px;height:48px;
-  margin-top:-24px;/* offset to center */
-  cursor:ew-resize;
   display:flex;align-items:center;justify-content:center;
   z-index:10;flex-shrink:0;
-  align-self:flex-start;
 }
-.card-handle-left{order:-1;margin-right:4px}
-.card-handle-right{order:1;margin-left:4px}
-.card-handle-bar{
+/* Horizontal handles (left/right) */
+.card-handle-left,.card-handle-right{
+  width:20px;height:48px;
+  cursor:ew-resize;
+  align-self:center;
+}
+.card-handle-left{margin-right:4px}
+.card-handle-right{margin-left:4px}
+/* Multi-screen: keep a slightly larger breathing room so the grabbers
+   are visually distinct from the first/last screens. */
+body.multi-screen .card-handle-left{margin-right:8px}
+body.multi-screen .card-handle-right{margin-left:8px}
+/* Vertical handles (top/bottom) */
+.card-handle-top,.card-handle-bottom{
+  width:48px;height:20px;
+  cursor:ns-resize;
+}
+.card-handle-top{margin-bottom:2px}
+.card-handle-bottom{margin-top:2px}
+/* Horizontal bar for left/right */
+.card-handle-left .card-handle-bar,.card-handle-right .card-handle-bar{
   width:2px;height:32px;border-radius:1px;
   background:rgba(0,0,0,0.2);
   transition:background var(--transition),height var(--transition);
 }
+/* Vertical bar for top/bottom */
+.card-handle-top .card-handle-bar,.card-handle-bottom .card-handle-bar{
+  width:32px;height:2px;border-radius:1px;
+  background:rgba(0,0,0,0.2);
+  transition:background var(--transition),width var(--transition);
+}
 [data-theme="dark"] .card-handle-bar{background:rgba(255,255,255,0.2)}
-.card-handle:hover .card-handle-bar{background:var(--accent);height:48px}
+.card-handle-left:hover .card-handle-bar,.card-handle-right:hover .card-handle-bar{background:var(--accent);height:48px}
+.card-handle-top:hover .card-handle-bar,.card-handle-bottom:hover .card-handle-bar{background:var(--accent);width:48px}
+
+/* Width tooltip: shows only when hovering/dragging the LEFT or RIGHT
+   card handles (those are the ones that actually drive width). The
+   top/bottom handles control height and must not surface the
+   "400px"-style label.
+   Position is contextual — the tooltip floats on the INNER side of
+   the grabber the user is interacting with, so it's always adjacent
+   to where the cursor is:
+     • hover LEFT grabber  → tooltip just to its RIGHT (inside edge)
+     • hover RIGHT grabber → tooltip just to its LEFT (inside edge)
+   Vertical center aligns with the grabber so it reads as a paired
+   annotation, not as a floating footer label. Two state classes
+   (.pin-left / .pin-right) are toggled via CSS `:has()` on the row
+   so a single tooltip element can swing between the two positions
+   without JS involvement.
+   Anti-flash: when the cursor leaves a grabber the `:has(:hover)`
+   chain drops instantly, which would normally cause the tooltip to
+   jump to the opposite side WHILE still fading out, producing a
+   "blink on the wrong side" artefact. We neutralise this by
+   delaying the `left` / `right` property swaps for the full
+   fade-out duration (150ms) when transitioning to the
+   "nobody hovered" baseline state — i.e. position is only allowed
+   to change AFTER opacity has reached 0. During fade-IN the
+   position changes immediately so the first-hover feels snappy. */
+.preview-outer-row{position:relative}
+.width-tooltip{
+  position:absolute;
+  top:50%;
+  right:36px;left:auto;bottom:auto;
+  transform:translateY(-50%);
+  padding:4px 8px;background:var(--toast-bg);color:var(--toast-text);
+  font-size:11px;font-weight:500;border-radius:4px;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  white-space:nowrap;pointer-events:none;
+  opacity:0;z-index:50;
+  /* opacity transitions immediately; left/right wait 150ms before
+     snapping so they only change AFTER the fade-out completes. */
+  transition:opacity 0.15s ease, left 0s linear 0.15s, right 0s linear 0.15s;
+}
+/* Hover / drag on LEFT grabber → pin tooltip to LEFT grabber's
+   right side. Position swap happens WITHOUT the 150ms delay so
+   the first hover feels instant. */
+.preview-outer-row:has(.card-handle-left:hover) .width-tooltip,
+.preview-outer-row.card-dragging-left .width-tooltip{
+  left:36px;right:auto;
+  transition:opacity 0.15s ease, left 0s linear 0s, right 0s linear 0s;
+}
+/* Hover / drag on RIGHT grabber → pin tooltip to RIGHT grabber's
+   left side. */
+.preview-outer-row:has(.card-handle-right:hover) .width-tooltip,
+.preview-outer-row.card-dragging-right .width-tooltip{
+  right:36px;left:auto;
+  transition:opacity 0.15s ease, left 0s linear 0s, right 0s linear 0s;
+}
+/* Visibility: same trigger as before (hover on either side or
+   programmatic .visible). */
+.preview-outer-row .card-handle-left:hover ~ .width-tooltip,
+.preview-outer-row .card-handle-right:hover ~ .width-tooltip,
+.preview-outer-row:has(.card-handle-left:hover) .width-tooltip,
+.preview-outer-row:has(.card-handle-right:hover) .width-tooltip,
+.width-tooltip.visible{opacity:1}
+
+/* ===== Editor collapse ===== */
+.editor-panel.collapsed{flex:0 0 40px;cursor:pointer}
+.editor-panel.collapsed:hover{background:var(--bg-tertiary)}
+.editor-panel.collapsed .editor-body{display:none}
+.editor-panel.collapsed .panel-label{display:none}
+.editor-panel.collapsed .panel-header{display:none}
+.editor-collapsed-label{
+  display:none;writing-mode:vertical-rl;text-orientation:mixed;
+  font-size:12px;font-weight:600;letter-spacing:0.3px;line-height:1.4;
+  color:var(--text-secondary);padding:16px 0;
+  align-self:center;user-select:none;cursor:pointer;flex:1;
+}
+.editor-panel.collapsed .editor-collapsed-label{display:flex;align-items:flex-start;justify-content:flex-start}
+.editor-collapsed-arrow{display:none;align-self:center;padding:12px 0;color:var(--text-secondary)}
+.editor-collapsed-arrow svg{transform:rotate(180deg)}
+.editor-panel.collapsed .editor-collapsed-arrow{display:flex;align-items:center;justify-content:center}
+.editor-header-left{display:flex;align-items:center;gap:8px}
+.editor-header-right{display:flex;align-items:center;gap:8px}
+#editor-reset svg{width:14px;height:14px;display:block}
+#editor-reset.hidden{display:none}
+.panel-logo{height:32px;width:auto;display:block;margin:-9px 0;flex-shrink:0}
+.editor-toggle{transition:transform 0.2s ease;display:none}
+.editor-toggle:hover{background:transparent !important}
+.editor-panel .panel-header{transition:color 0.15s ease}
 
 /* ===== Markdown Rendering ===== */
-.markdown-body{
-  font-size:17px;line-height:1.4;word-wrap:break-word;
-  color:var(--text-primary);background:var(--card-bg);
-  border-radius:8px;padding:8px 12px;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
-  /* Prevent orphaned punctuation */
-  line-break:strict;
-  overflow-wrap:break-word;
-  word-break:normal;
+/* Selected element in preview: thin outline only — text color stays untouched.
+   The matching source line(s) in the editor turn green via the overlay. */
+.markdown-body .inspector-highlight{outline:1px solid var(--accent);outline-offset:0;border-radius:2px}
+.markdown-body .inspector-block-outline{outline:1px dashed var(--accent);outline-offset:0;border-radius:2px}
+/* When a heading is selected we want TWO nested boxes:
+     - dashed (outer): the whole heading's border-box, including the
+       `padding-top` breathing room that `--mt-h*` controls.
+     - solid  (inner): the text content box == `font-size × line-height`,
+       spanning the full heading width so the bottom and left/right
+       edges line up flush with the dashed box.
+   The inner `.heading-text` is normally `display:inline`, so its
+   outline only hugs the glyph run. Promoting it to `block` inside the
+   heading makes it span the full width while preserving the inline-box
+   height (which is what line-height gives us at block level, too). */
+.markdown-body :where(h1,h2,h3,h4,h5,h6) .heading-text.inspector-highlight{
+  display:block;
 }
-.markdown-body .inspector-highlight{outline:1px solid var(--accent);outline-offset:1px}
-.markdown-body .inspector-block-outline{outline:1px dashed rgba(7,193,96,0.3);outline-offset:0}
 .markdown-body .heading-text{display:inline}
 .markdown-body .cell-text{display:inline}
 
@@ -173,48 +1455,117 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
   line-height:1.4;
 }
 
-/* Headings */
+/* Headings
+   Top breathing room is implemented as padding-top (not margin-top) so that:
+   1) the heading's own border-box contains that empty space (text sits at
+      the bottom of the box — visually "anchored" to the content below),
+   2) adjacent-block spacing between a preceding paragraph and a heading
+      follows the single paragraph rule (--sp-double only), because
+      getBoundingClientRect on the heading starts at the padding edge. */
 .markdown-body h1,.markdown-body h2,.markdown-body h3,
 .markdown-body h4,.markdown-body h5,.markdown-body h6{
-  margin-top:0;margin-bottom:16px;font-weight:600;line-height:1.4;
-  color:var(--text-primary);padding-bottom:0;border-bottom:none;
+  margin-top:0;margin-bottom:var(--sp-double);
+  font-weight:600;line-height:var(--lh-heading);
+  color:var(--pv-text);padding-bottom:0;border-bottom:none;
 }
-.markdown-body h1{font-size:21px;padding-top:12px}
-.markdown-body h2{font-size:19px;padding-top:8px}
-.markdown-body h3{font-size:17px;padding-top:4px}
-.markdown-body h4{font-size:17px;padding-top:0;font-weight:600;color:var(--text-primary)}
-.markdown-body h5{font-size:17px;padding-top:0;font-weight:600;color:var(--text-primary)}
-.markdown-body h6{font-size:17px;padding-top:0;font-weight:600;color:var(--text-primary)}
+.markdown-body>*:first-child{margin-top:0}
+.markdown-body h1{font-size:var(--fs-h1);padding-top:var(--mt-h1)}
+.markdown-body h2{font-size:var(--fs-h2);padding-top:var(--mt-h2)}
+.markdown-body h3{font-size:var(--fs-h3);padding-top:var(--mt-h3)}
+.markdown-body h4{font-size:var(--fs-h4);padding-top:var(--mt-h4);font-weight:600;color:var(--pv-text)}
+.markdown-body h5{font-size:var(--fs-h5);padding-top:var(--mt-h5);font-weight:600;color:var(--pv-text)}
+.markdown-body h6{font-size:var(--fs-h6);padding-top:var(--mt-h6);font-weight:600;color:var(--pv-text)}
 
-.markdown-body p{margin-top:0;margin-bottom:16px;line-height:1.4}
-.markdown-body a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
-.markdown-body a:hover{border-bottom-color:var(--accent)}
+.markdown-body p{margin-top:0;margin-bottom:var(--sp-double);line-height:var(--lh-body)}
+/* Last block inside the bubble drops its margin-bottom so the gap between
+   it and the bubble's inner edge matches the top gap (just the bubble's
+   own padding). Otherwise last-child margin-bottom would double up with
+   the bubble's padding-bottom. */
+.markdown-body>*:last-child{margin-bottom:0}
+.markdown-body strong,.markdown-body em,.markdown-body u,.markdown-body del,.markdown-body s,.markdown-body ins,.markdown-body span{color:inherit}
+/* Italic emphasis — CJK characters stay upright via the WMD-CJK-Upright
+   virtual family declared above; Latin/digits still render italic via
+   the inherited UI font's italic face.
+   `font-synthesis: style` is the critical second half: it tells the
+   browser NOT to synthesize italic for a font that lacks an italic face.
+   Without it, Chromium/Safari would slant CJK glyphs anyway (via an
+   affine transform), undoing the unicode-range trick. With it, CJK text
+   inside `*...*` renders upright while Latin words are still italicized. */
+.markdown-body em,.markdown-body i{
+  font-style:italic;
+  font-family:"WMD-CJK-Upright",-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;
+  font-synthesis: style;
+  -webkit-font-synthesis: style;
+}
+/* Hard override for CJK runs inside <em>/<i>. The JS post-process wraps
+   every contiguous CJK run under <em>/<i> in <span class="cjk-upright">.
+   The @font-face tricks above are unreliable on macOS/Chromium because
+   system CJK fonts advertise an italic face that the OS synthesizes with
+   a geometric slant — `font-synthesis` then refuses to intervene. Forcing
+   `font-style: normal` on the span sidesteps all of that: the CJK glyphs
+   fall back to the regular upright face unconditionally, while Latin
+   letters (outside the span) keep their real italic. */
+.markdown-body em .cjk-upright,
+.markdown-body i  .cjk-upright{
+  font-style: normal;
+  font-family: inherit;
+}
+.markdown-body a{color:var(--link-color);text-decoration:none;border-bottom:0.5px solid transparent}
+.markdown-body a:hover{border-bottom-color:var(--link-color)}
 .markdown-body strong{font-weight:600}
 .markdown-body img{max-width:100%;height:auto;border-radius:var(--radius)}
 
-/* Inline code: no border-radius at line breaks */
+/* Inline code: break at word boundaries first; if a single unbroken token
+   is wider than the bubble, fall back to character-level wrapping so the
+   bubble (and page layout) stays intact. */
 .markdown-body code{
   padding:1px 0.4em;margin:0 2px;font-size:85%;
   font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
-  background:var(--inline-code-bg);border-radius:4px;color:var(--text-primary);
+  background:var(--pv-inline-code-bg);border-radius:4px;color:var(--pv-text);
   vertical-align:baseline;
   box-decoration-break:slice;-webkit-box-decoration-break:slice;
-  word-wrap:break-word;overflow-wrap:break-word;word-break:break-word;white-space:pre-wrap;
+  word-break:normal;overflow-wrap:anywhere;white-space:normal;
+  max-width:100%;
 }
 
 /* Code blocks */
-/* Code block wrapper with gradient masks */
+/* Code block wrapper with gradient masks.
+   Visual rhythm (top to bottom):
+     [prev block]
+       --sp-double  ← global block spacing
+       4px          ← code-wrapper margin-top (own outer breathing)
+     ─── top border 0.5px ───
+       12px  ← wrapper padding-top: gap from the rule down to the label
+       LABEL
+       8px   ← label margin-bottom (= --sp-double)
+       <pre><code>
+       12px  ← wrapper padding-bottom: gap from last code line to rule
+     ─── bottom border 0.5px ───
+       4px          ← code-wrapper margin-bottom (own outer breathing)
+       --sp-double  ← global block spacing
+     [next block]
+   Both the 4px outer gap AND the standard --sp-double block gap are
+   applied, so the code block never crowds its neighbors. Since the
+   project's paragraphs use margin-bottom only (never margin-top), we
+   have to put the global gap on BOTH sides of the code block; we
+   cannot rely on the next <p> contributing a top margin. */
 .code-wrapper{
-  position:relative;margin-bottom:16px;
-  border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color);
+  position:relative;
+  margin:calc(var(--sp-double) + 4px) 0;
+  border-top:0.5px solid var(--pv-border);border-bottom:0.5px solid var(--pv-border);
+  padding:12px 0;
 }
-/* Lang label sits outside the scroll area */
+/* Lang label sits directly under the top rule. No vertical padding on
+   the label itself — the 12px between the rule and the label text is
+   entirely provided by the wrapper's padding-top. The label → code
+   gap is --sp-double (8px) so it feels like a paragraph break between
+   the section title and its body. */
 .code-wrapper .code-lang-label{
   display:block;
   font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
-  font-weight:600;font-size:15px;text-transform:uppercase;
-  letter-spacing:0.5px;color:var(--text-secondary);
-  padding:16px 0 8px 0;margin:0;
+  font-weight:600;font-size:var(--fs-lang-label);text-transform:uppercase;
+  letter-spacing:0.5px;color:var(--pv-text-secondary);
+  padding:0;margin:0 0 var(--sp-double) 0;
 }
 /* Scroll area for code only */
 .code-wrapper .code-scroll{
@@ -235,27 +1586,35 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
 .code-wrapper .code-scroll.shadow-left::before{opacity:1}
 .code-wrapper .code-scroll.shadow-right::after{opacity:1}
 
+/* <pre> inside the wrapper: no vertical padding of its own. The 12px
+   gap between the last code line and the bottom border is provided
+   entirely by the wrapper's padding-bottom. */
 .code-wrapper pre{
-  padding:0 0 16px 0 !important;overflow-x:auto;overflow-y:hidden;font-size:15px;line-height:1.4;
+  padding:0 !important;overflow-x:auto;overflow-y:hidden;font-size:var(--fs-code);line-height:1.4;
   background:transparent !important;border:none !important;
   border-radius:0;margin:0;position:relative;
   scrollbar-width:none;-ms-overflow-style:none;
 }
 .code-wrapper pre::-webkit-scrollbar{display:none;width:0;height:0}
 
-/* Fallback: unwrapped pre */
+/* Fallback: unwrapped pre (no language label) — same rhythm as the
+   wrapped case. Outer margin = global block gap + 4px (margin collapsing
+   with the previous block's --sp-double resolves to this value since
+   paragraphs in this project use margin-bottom only). */
 .markdown-body>pre{
-  padding:16px 0 !important;overflow-x:auto;overflow-y:hidden;font-size:15px;line-height:1.4;
+  padding:12px 0 !important;overflow-x:auto;overflow-y:hidden;font-size:var(--fs-code);line-height:1.4;
   background:transparent !important;border:none !important;
-  border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color);
-  border-radius:0;margin-bottom:16px;position:relative;
+  border-top:0.5px solid var(--pv-border);border-bottom:0.5px solid var(--pv-border);
+  border-radius:0;
+  margin:calc(var(--sp-double) + 4px) 0;
+  position:relative;
   scrollbar-width:none;-ms-overflow-style:none;
 }
 .markdown-body>pre::-webkit-scrollbar{display:none;width:0;height:0}
 
 .markdown-body pre code,
 .markdown-body pre code.hljs{
-  padding:0 !important;margin:0;font-size:15px;background:transparent !important;border-radius:0;
+  padding:0 !important;margin:0;font-size:var(--fs-code);background:transparent !important;border-radius:0;
   display:block;line-height:1.4;white-space:pre;word-break:normal;overflow-wrap:normal;
   overflow-x:auto !important;overflow-y:hidden !important;
   scrollbar-width:none;-ms-overflow-style:none;
@@ -267,19 +1626,79 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
 
 /* Blockquote */
 .markdown-body blockquote{
-  padding:0 0 0 20px;margin:0 0 16px 0;
-  border-left:2px solid rgba(0,0,0,0.15);
-  color:var(--text-primary);background:transparent;border-radius:0;
+  padding:0 0 0 20px;margin:0 0 var(--sp-double) 0;
+  border-left:2px solid var(--pv-quote-border);
+  color:var(--pv-text);background:transparent;border-radius:0;
 }
-[data-theme="dark"] .markdown-body blockquote{border-left-color:rgba(255,255,255,0.15)}
 .markdown-body blockquote>:first-child{margin-top:0}
 .markdown-body blockquote>:last-child{margin-bottom:0}
 
+/* Max nesting levels (blockquote + list combined) — controlled by data-max-indent on .markdown-body */
+/* Default = 3. When max-indent=N, levels > N are flattened (no padding-left / border). */
+
+/* === max-indent: 2 === */
+.markdown-body[data-max-indent="2"] blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+.markdown-body[data-max-indent="2"] li>ul li>ul,
+.markdown-body[data-max-indent="2"] li>ol li>ol,
+.markdown-body[data-max-indent="2"] li>ul li>ol,
+.markdown-body[data-max-indent="2"] li>ol li>ul,
+.markdown-body[data-max-indent="2"] blockquote li>ul,
+.markdown-body[data-max-indent="2"] blockquote li>ol{margin-left:0}
+
+/* === max-indent: 3 (default) === */
+.markdown-body:not([data-max-indent]) blockquote blockquote blockquote blockquote,
+.markdown-body[data-max-indent="3"] blockquote blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+.markdown-body:not([data-max-indent]) blockquote blockquote li>ul,
+.markdown-body:not([data-max-indent]) blockquote blockquote li>ol,
+.markdown-body:not([data-max-indent]) blockquote li>ul li>ul,
+.markdown-body:not([data-max-indent]) blockquote li>ol li>ol,
+.markdown-body:not([data-max-indent]) blockquote li>ul li>ol,
+.markdown-body:not([data-max-indent]) blockquote li>ol li>ul,
+.markdown-body[data-max-indent="3"] blockquote blockquote li>ul,
+.markdown-body[data-max-indent="3"] blockquote blockquote li>ol,
+.markdown-body[data-max-indent="3"] blockquote li>ul li>ul,
+.markdown-body[data-max-indent="3"] blockquote li>ol li>ol,
+.markdown-body[data-max-indent="3"] blockquote li>ul li>ol,
+.markdown-body[data-max-indent="3"] blockquote li>ol li>ul{margin-left:0}
+.markdown-body:not([data-max-indent]) li>ul li>ul li>ul,
+.markdown-body:not([data-max-indent]) li>ul li>ul li>ol,
+.markdown-body:not([data-max-indent]) li>ul li>ol li>ul,
+.markdown-body:not([data-max-indent]) li>ul li>ol li>ol,
+.markdown-body:not([data-max-indent]) li>ol li>ul li>ul,
+.markdown-body:not([data-max-indent]) li>ol li>ul li>ol,
+.markdown-body:not([data-max-indent]) li>ol li>ol li>ul,
+.markdown-body:not([data-max-indent]) li>ol li>ol li>ol,
+.markdown-body[data-max-indent="3"] li>ul li>ul li>ul,
+.markdown-body[data-max-indent="3"] li>ul li>ul li>ol,
+.markdown-body[data-max-indent="3"] li>ul li>ol li>ul,
+.markdown-body[data-max-indent="3"] li>ul li>ol li>ol,
+.markdown-body[data-max-indent="3"] li>ol li>ul li>ul,
+.markdown-body[data-max-indent="3"] li>ol li>ul li>ol,
+.markdown-body[data-max-indent="3"] li>ol li>ol li>ul,
+.markdown-body[data-max-indent="3"] li>ol li>ol li>ol{margin-left:0}
+
+/* === max-indent: 4 === */
+.markdown-body[data-max-indent="4"] blockquote blockquote blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+/* === max-indent: 5 === */
+.markdown-body[data-max-indent="5"] blockquote blockquote blockquote blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+/* === max-indent: 6 === */
+.markdown-body[data-max-indent="6"] blockquote blockquote blockquote blockquote blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+
 /* Lists */
-.markdown-body ul,.markdown-body ol{padding-left:0;margin-bottom:16px;list-style:none}
+.markdown-body ul,.markdown-body ol{padding-left:0;margin-bottom:var(--sp-double);list-style:none}
 /* Adjacent lists: remove margin between them, use gap of 8px via last-child margin */
 .markdown-body ol+ul,.markdown-body ul+ol,.markdown-body ol+ol,.markdown-body ul+ul{
-  margin-top:-8px;/* 16px margin-bottom of prev - 8px = 8px gap */
+  margin-top:calc(-1 * var(--sp-single));/* double - single = single gap */
 }
 .markdown-body ol{counter-reset:ol-counter}
 .markdown-body ol>li{display:flex;align-items:baseline;flex-wrap:wrap}
@@ -296,38 +1715,122 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
   min-width:var(--ol-num-width, auto);
 }
 .li-marker-ul{
-  display:inline-block;text-align:center;font-weight:900;font-size:17px;line-height:1;
+  display:inline-block;text-align:center;font-weight:900;font-size:var(--fs-base);line-height:1;
   min-width:var(--ul-bullet-width, auto);
-}
-  text-align:center;font-weight:900;font-size:17px;line-height:1;
 }
 
 /* Hide ::before since we use real DOM markers now */
 .markdown-body ol>li::before{content:none !important;display:none !important}
 .markdown-body ul>li::before{content:none !important;display:none !important}
 
-.markdown-body li>p{margin-bottom:8px;flex:1;min-width:0}
+.markdown-body li>p{margin-bottom:var(--sp-single);flex:1;min-width:0}
 .markdown-body li>p:last-child{margin-bottom:0}
 .markdown-body .li-text{flex:1;min-width:0}
-.markdown-body li{margin-bottom:0;line-height:1.4}
-.markdown-body li+li{margin-top:8px}
+.markdown-body li{margin-bottom:0;line-height:var(--lh-body)}
+.markdown-body li+li{margin-top:var(--sp-single)}
 /* Nested lists: child number/bullet aligns with parent text start */
 .markdown-body li>ul,.markdown-body li>ol{
-  flex-basis:100%;margin-top:4px;margin-bottom:4px;
+  flex-basis:100%;
+  /* Single-newline rhythm (4px AI/Chats, 12px Files) so nested
+     lists breathe consistently with the rest of the in-list
+     block spacing rules below. */
+  margin-top:var(--sp-single);margin-bottom:var(--sp-single);
   /* parent's ::before min-width + margin-right = text start position */
   margin-left:calc(var(--ol-num-width, 1.2em) + 0.25em);
   padding-left:0;
 }
-
-/* Horizontal rule */
-.markdown-body hr{
-  height:1px;padding:0;margin:16px 0;
-  background:var(--border-color);border:0;
+/* Block-level children inside a list item.
+ *
+ * DOM shape produced by wrapListTextNodes():
+ *
+ *   <li>                                  ← display:flex, flex-wrap:wrap
+ *     <span class="li-marker">1.</span>
+ *     <span class="li-text">              ← flex:1 on a single row
+ *       第一项…                            ← inline text
+ *       <blockquote>…</blockquote>        ← block-level, wraps below text
+ *     </span>
+ *     <ul>…</ul>                          ← nested lists: direct child of <li>
+ *   </li>
+ *
+ * Nested UL/OL live as direct children of <li> (they need
+ * flex-basis:100% to move to a new row below the marker).
+ *
+ * Blockquote / pre / table / formula stay INSIDE .li-text so the
+ * block renders flush against the list item's prose column — its
+ * own padding-left + border-left become the visible vertical rule
+ * to the LEFT of the prose, giving the "aligned with the body
+ * text" layout the spec calls for.
+ *
+ * The single-newline rhythm gap ABOVE these blocks is produced by
+ * margin-top:var(--sp-single) on the block itself. We zero the
+ * default bottom margin so it doesn't stack into 2×sp-single
+ * against the next block. */
+.markdown-body .li-text>blockquote,
+.markdown-body .li-text>pre,
+.markdown-body .li-text>.code-wrapper,
+.markdown-body .li-text>table,
+.markdown-body .li-text>.table-wrapper,
+.markdown-body .li-text>.formula-wrapper{
+  margin-top:var(--sp-single);
+  margin-bottom:0;
+}
+/* Loose-list fallback: when marked emits <p> + block as direct
+   children of <li> (CommonMark loose lists), apply the same
+   rhythm. `.li-text > p` may also be present when a paragraph
+   precedes a block inside the text span. */
+.markdown-body li>p:has(+ blockquote),
+.markdown-body li>p:has(+ pre),
+.markdown-body li>p:has(+ .code-wrapper),
+.markdown-body li>p:has(+ table),
+.markdown-body li>p:has(+ .table-wrapper),
+.markdown-body li>p:has(+ .formula-wrapper),
+.markdown-body li>p:has(+ ul),
+.markdown-body li>p:has(+ ol){margin-bottom:0}
+.markdown-body .li-text>p:has(+ blockquote),
+.markdown-body .li-text>p:has(+ pre),
+.markdown-body .li-text>p:has(+ .code-wrapper),
+.markdown-body .li-text>p:has(+ table),
+.markdown-body .li-text>p:has(+ .table-wrapper),
+.markdown-body .li-text>p:has(+ .formula-wrapper){margin-bottom:0}
+/* Rare: when the author uses a loose list and marked emits
+   blockquote / pre as a direct child of <li> alongside nested UL/OL
+   escapees, give it the same rhythm. (UL/OL are broken out by
+   wrapListTextNodes; everything else is not.) */
+.markdown-body li>blockquote,
+.markdown-body li>pre,
+.markdown-body li>.code-wrapper,
+.markdown-body li>table,
+.markdown-body li>.table-wrapper,
+.markdown-body li>.formula-wrapper{
+  flex-basis:100%;width:100%;
+  margin-top:var(--sp-single);
+  margin-bottom:0;
+  align-self:flex-start;
 }
 
-/* Table scroll container */
+/* Horizontal rule: 0.5px line, with 4px inner padding top/bottom as
+   self-contained vertical breathing room; outer spacing follows the
+   paragraph rule (margin-bottom only). background-clip keeps the line
+   confined to the content box so padding is truly empty space. */
+.markdown-body hr{
+  height:0.5px;padding:4px 0;margin:0 0 var(--sp-double) 0;
+  background:var(--pv-border);background-clip:content-box;
+  border:0;box-sizing:content-box;
+}
+
+/* Table scroll container.
+   The extra --tbl-pb breathing room BELOW the table is intentionally
+   applied as `padding-bottom` (not added to `margin-bottom`). Reason:
+   when a table is the last child of a <blockquote>, the rule
+   `blockquote > :last-child { margin-bottom: 0 }` (per spec §7) would
+   zero out a margin-based gap and the air space would silently vanish.
+   Padding is immune to that override, so the 8px breathing remains
+   regardless of the table's context (top-level, inside a list, inside
+   a blockquote, etc.). */
 .table-wrapper{
-  position:relative;margin-bottom:16px;overflow:hidden;
+  position:relative;margin-bottom:var(--sp-double);
+  padding-bottom:var(--tbl-pb);
+  overflow:hidden;
 }
 .table-scroll{
   overflow-x:auto;overflow-y:hidden;
@@ -361,47 +1864,199 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
 }
 .table-wrapper table th,.table-wrapper table td{
   padding:12px 24px 12px 0;/* 12px top/bottom, 24px right as column gap */
-  border:none;border-bottom:1px solid var(--border-color);text-align:left;
+  border:none;border-bottom:0.5px solid var(--pv-border);text-align:left;
   max-width:calc(400px * 0.667);
-  word-wrap:break-word;white-space:normal;
+  word-wrap:break-word;white-space:normal;vertical-align:top;
 }
+/* Respect align attribute from Markdown */
+.table-wrapper table th[align="center"],.table-wrapper table td[align="center"]{text-align:center}
+.table-wrapper table th[align="right"],.table-wrapper table td[align="right"]{text-align:right}
+.table-wrapper table th[align="left"],.table-wrapper table td[align="left"]{text-align:left}
 /* Last column no right padding */
 .table-wrapper table th:last-child,.table-wrapper table td:last-child{
   padding-right:0;
 }
 .table-wrapper table th{
-  font-size:15px;font-weight:600;
+  font-size:var(--fs-code);font-weight:600;
   color:rgba(0,0,0,0.45);background:transparent;
+  padding-top:var(--th-pt);
+}
+/* Inline code inside table header: 2px smaller, aligned height */
+.table-wrapper table th code,
+.markdown-body>table th code{
+  font-size:var(--fs-code-small);
+  padding:1px 0.4em;
+  vertical-align:baseline;
+  line-height:inherit;
 }
 [data-theme="dark"] .table-wrapper table th{color:rgba(255,255,255,0.45)}
 .table-wrapper table tr:nth-child(2n){background:transparent}
 
-/* Fallback */
+/* Fallback: unwrapped table (same padding trick as .table-wrapper
+   so the --tbl-pb breathing survives inside a <blockquote>). */
 .markdown-body>table{
   border-spacing:0;border-collapse:collapse;
-  margin-bottom:16px;width:auto;max-width:100%;
+  margin-bottom:var(--sp-double);padding-bottom:var(--tbl-pb);
+  width:auto;max-width:100%;
   border-radius:0;border:none;
 }
 .markdown-body>table th,.markdown-body>table td{
-  padding:12px 24px 12px 0;border:none;border-bottom:1px solid var(--border-color);text-align:left;
-  max-width:calc(400px * 0.667);word-wrap:break-word;
+  padding:12px 24px 12px 0;border:none;border-bottom:0.5px solid var(--pv-border);text-align:left;
+  max-width:calc(400px * 0.667);word-wrap:break-word;vertical-align:top;
 }
+.markdown-body>table th[align="center"],.markdown-body>table td[align="center"]{text-align:center}
+.markdown-body>table th[align="right"],.markdown-body>table td[align="right"]{text-align:right}
+.markdown-body>table th[align="left"],.markdown-body>table td[align="left"]{text-align:left}
 .markdown-body>table th:last-child,.markdown-body>table td:last-child{padding-right:0}
 .markdown-body>table th{
-  font-size:15px;font-weight:600;color:rgba(0,0,0,0.45);background:transparent;
+  font-size:var(--fs-code);font-weight:600;color:rgba(0,0,0,0.45);background:transparent;
+  padding-top:var(--th-pt);
 }
 [data-theme="dark"] .markdown-body>table th{color:rgba(255,255,255,0.45)}
 .markdown-body>table tr:nth-child(2n){background:transparent}
 
-/* checkbox */
-.markdown-body li:has(>input[type="checkbox"]){}
-.markdown-body ul>li:has(>input[type="checkbox"])::before{content:none}
-.markdown-body input[type="checkbox"]{margin-right:6px;flex-shrink:0;accent-color:var(--accent)}
+/* Superscript / Subscript — use OpenType features, inherit font size & style */
+.markdown-body sup{
+  font-variant-position:super;
+  font-size:inherit;vertical-align:baseline;
+  line-height:inherit;
+}
+.markdown-body sub{
+  font-variant-position:sub;
+  font-size:inherit;vertical-align:baseline;
+  line-height:inherit;
+}
+
+/* Footnote reference — link icon in a square container */
+.markdown-body .footnote-ref{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:calc(17px * 1.4);height:calc(17px * 1.4);
+  cursor:pointer;vertical-align:middle;
+  transition:opacity 0.15s ease;
+}
+.markdown-body .footnote-ref:hover{
+  opacity:0.3;
+}
+.markdown-body .footnote-ref .fn-icon{
+  display:flex;align-items:center;justify-content:center;
+}
+.markdown-body .footnote-ref .fn-icon svg{
+  width:18px;height:18px;display:block;
+}
+/* Light/dark mode icon toggle */
+.markdown-body .footnote-ref .fn-icon-light{display:flex}
+.markdown-body .footnote-ref .fn-icon-dark{display:none}
+[data-theme="dark"] .markdown-body .footnote-ref .fn-icon-light{display:none}
+[data-theme="dark"] .markdown-body .footnote-ref .fn-icon-dark{display:flex}
+/* Numeric-superscript variant (`[1]`, `[1,2]`, …). Always emitted
+   by processFootnoteRefs but kept hidden unless Files mode requests
+   it — see the mode-specific override in the Files section. */
+.markdown-body .footnote-ref .fn-text{display:none}
+
+/* In Files mode we render footnote references as a plain `[N]`-style
+   numeric superscript (academic-paper convention) rather than the
+   circular link icon used by AI / Chats. Swap the two children and
+   collapse the fixed square container so the superscript flows
+   inline with the surrounding text. */
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref{
+  width:auto;height:auto;
+  vertical-align:baseline;
+  display:inline;
+}
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref .fn-icon,
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref .fn-icon-dark,
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref .fn-icon-light{
+  display:none;
+}
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref .fn-text{
+  display:inline;
+  font-size:0.7em;
+  vertical-align:super;
+  line-height:1;
+  color:var(--link-color);
+  font-feature-settings:"tnum" 1;
+  margin:0 1px;
+}
+.preview-panel[data-mode="files"] .markdown-body .footnote-ref:hover .fn-text{
+  opacity:0.7;
+}
+
+/* Footnote backdrop — blocks interactions behind panel */
+.footnote-backdrop{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.25);
+  z-index:290;
+  opacity:0;
+  transition:opacity 0.25s ease;
+}
+.footnote-backdrop.visible{
+  opacity:1;
+}
+[data-theme="dark"] .footnote-backdrop{
+  background:rgba(0,0,0,0.45);
+}
+
+/* Footnote 1/3-height panel — overlays preview area from bottom */
+.footnote-panel{
+  position:absolute;bottom:0;left:0;right:0;
+  height:33.33%;min-height:100px;
+  background:var(--card-bg);
+  border-top:0.5px solid var(--border-color);
+  border-radius:12px 12px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.12);
+  z-index:300;
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.footnote-panel.visible{
+  transform:translateY(0);
+}
+[data-theme="dark"] .footnote-panel{
+  box-shadow:0 -4px 24px rgba(0,0,0,0.4);
+}
+.footnote-panel-header{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;flex-shrink:0;
+  border-bottom:0.5px solid var(--border-color);
+}
+.footnote-panel-close{
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border:none;border-radius:6px;
+  background:transparent;color:var(--text-secondary);
+  cursor:pointer;transition:all var(--transition);
+  flex-shrink:0;
+}
+.footnote-panel-close:hover{
+  background:var(--bg-tertiary);color:var(--text-primary);
+}
+.footnote-panel-title{
+  font-size:14px;font-weight:600;color:var(--text-primary);
+}
+.footnote-panel-body{
+  flex:1;overflow-y:auto;padding:0 16px;
+  font-size:var(--fs-code);line-height:1.4;color:var(--text-primary);
+}
+.footnote-panel-item{
+  padding:24px 0;
+  border-bottom:0.5px solid var(--border-color);
+}
+.footnote-panel-item:last-child{
+  border-bottom:none;
+}
+.footnote-panel-item p{margin:0 0 8px 0}
+.footnote-panel-item p:last-child{margin-bottom:0}
+.footnote-panel-item ul,.footnote-panel-item ol{margin:8px 0;padding-left:20px}
+/* Flatten nested lists inside footnotes: max 1 level */
+.footnote-panel-item li>ul,.footnote-panel-item li>ol{padding-left:0;margin-left:0}
+.footnote-panel-item blockquote blockquote{padding-left:0;border-left:none}
+.footnote-panel-item li{margin-bottom:4px}
+.footnote-panel-item code{font-size:85%;padding:1px 0.4em;background:var(--inline-code-bg);border-radius:4px}
 
 /* LaTeX */
 /* Block formula wrapper with gradient masks */
 .formula-wrapper{
-  position:relative;margin:0 0 16px 0;overflow:hidden;
+  position:relative;margin:4px 0;overflow:hidden;
 }
 .formula-wrapper::before,
 .formula-wrapper::after{
@@ -442,52 +2097,483 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","N
 }
 
 .markdown-body .katex-display{margin:0;overflow:visible;padding:0}
+/* Inline formula: break at operators (word-level), never mid-token */
 .markdown-body .katex-inline{display:inline}
-/* Allow line break before operators in inline formulas */
-.markdown-body .katex .mbin,
-.markdown-body .katex .mrel{display:inline-block}
-.markdown-body .katex .base{display:inline;white-space:normal;word-wrap:break-word}
+.markdown-body .katex-inline .katex{white-space:normal;word-break:keep-all;overflow-wrap:normal}
+/* Each .base renders one atomic token — never split it */
+.markdown-body .katex-inline .katex .base{
+  display:inline-block;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;
+}
+/* Allow a line break BEFORE binary and relational operators (so E = mc^2 breaks before = or *) */
+.markdown-body .katex-inline .katex .mbin,
+.markdown-body .katex-inline .katex .mrel{display:inline-block}
 
-/* ===== Inspector ===== */
+/* ===== Inspector (side panel, participates in flex layout) =====
+   Triggered by the gear icon in the preview header. When opened, the panel
+   takes its own flex space — editor and preview are proportionally squeezed.
+   There is no grabber between preview and inspector: the panel has a fixed
+   width (--side-panel-width) so drag-to-resize was removed.
+   Collapsed = zero-width (flex:0 0 0) and translated fully off-screen so the
+   slide-in animation reads as "coming from outside the window".
+*/
 .inspector-panel{
-  width:320px;flex-shrink:0;display:flex;flex-direction:column;
-  border-left:1px solid var(--border-light);background:var(--bg-secondary);overflow:hidden;
-  transition:width 0.2s ease;
+  flex:0 0 var(--side-panel-width);width:var(--side-panel-width);
+  min-width:var(--side-panel-width);max-width:var(--side-panel-width);
+  display:flex;flex-direction:column;
+  background:var(--bg-secondary);
+  overflow:hidden;
+  transition:flex-basis 0.32s cubic-bezier(0.4,0,0.2,1),
+             flex-grow 0.32s cubic-bezier(0.4,0,0.2,1),
+             min-width 0.32s cubic-bezier(0.4,0,0.2,1),
+             max-width 0.32s cubic-bezier(0.4,0,0.2,1),
+             width 0.32s cubic-bezier(0.4,0,0.2,1),
+             transform 0.32s cubic-bezier(0.4,0,0.2,1),
+             background 0.15s ease;
 }
 .inspector-panel.collapsed{
-  width:40px;
+  flex:0 0 0;width:0;min-width:0;max-width:0;
+  pointer-events:none;
 }
-.inspector-panel.collapsed .inspector-content{display:none}
-.inspector-panel.collapsed .panel-label{display:none}
-.inspector-panel.collapsed .panel-header{justify-content:center;padding:6px 8px}
-/* Vertical label when collapsed */
-.inspector-collapsed-label{
-  display:none;writing-mode:vertical-rl;text-orientation:mixed;
-  font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;
-  color:var(--text-secondary);padding:12px 0;
-  align-self:center;user-select:none;cursor:pointer;
-}
-.inspector-panel.collapsed .inspector-collapsed-label{display:block}
-.inspector-toggle{
-  width:24px !important;height:24px !important;transition:transform 0.2s ease;
-}
-.inspector-panel.collapsed .inspector-toggle{
-  transform:rotate(180deg);
-}
+.inspector-panel.collapsed .panel-header,
+.inspector-panel.collapsed .inspector-content{visibility:hidden}
+.inspector-panel .panel-header{cursor:default}
+.inspector-panel .panel-header .inspector-toggle{cursor:pointer}
+.inspector-panel .panel-header .inspector-toggle:hover{color:var(--text-primary)}
 .inspector-content{flex:1;overflow-y:auto;padding:12px;font-size:12px;color:var(--text-primary)}
-.inspector-placeholder{color:var(--text-secondary);font-size:12px;text-align:center;padding:24px 8px;line-height:1.5}
-.inspector-section{margin-bottom:12px}
-.inspector-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border-light)}
-.inspector-row{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:11px}
-.inspector-key{color:var(--text-secondary);flex-shrink:0;margin-right:8px}
-.inspector-value{color:var(--text-primary);text-align:right;word-break:break-all;font-family:"SFMono-Regular","Menlo",monospace;font-size:10px}
-.inspector-tag{display:inline-block;padding:2px 6px;border-radius:3px;background:var(--accent-bg);color:var(--accent);font-size:11px;font-weight:600;margin-bottom:8px}
-.inspector-color-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;border:1px solid var(--border-color);vertical-align:middle;margin-right:4px}
+
+/* Settings gear button: when panel is open, collapse button width to 0 and
+   fade out so adjacent icons slide into place smoothly via flex gap.
+   `overflow:hidden` hides the SVG as width shrinks. We also animate the
+   negative left margin, which absorbs the 12px flex-gap that would otherwise
+   linger between theme and settings — letting theme slide all the way into
+   the settings button's original position. */
+#settings-open-btn{
+  overflow:hidden;
+  transition:width 0.28s cubic-bezier(0.4,0,0.2,1),
+             margin-left 0.28s cubic-bezier(0.4,0,0.2,1),
+             opacity 0.2s ease,
+             transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+#settings-open-btn.settings-open-btn-hidden{
+  width:0 !important;min-width:0;padding:0;
+  margin-left:-12px;
+  opacity:0;transform:translateX(8px);
+  pointer-events:none;
+}
+
+/* Inspector typography unified — match panel-header font-size */
+.inspector-section{margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid var(--border-light)}
+.inspector-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.inspector-section-title{font-size:10px;font-weight:600;letter-spacing:0.8px;color:var(--text-secondary);margin-bottom:8px;padding-bottom:0;border-bottom:none;text-transform:uppercase}
+.inspector-section-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.inspector-section-title-row .inspector-section-title{margin-bottom:0}
+/* Segmented Light/Dark theme switch inside Colors section */
+.theme-segmented{display:inline-flex;border:0.5px solid var(--border-color);border-radius:4px;overflow:hidden;background:var(--bg-primary);height:22px}
+.theme-seg-btn{
+  border:none;background:transparent;color:var(--text-secondary);
+  font-size:10px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;
+  padding:0 8px;cursor:pointer;line-height:1;
+  display:inline-flex;align-items:center;
+  transition:background 0.15s ease,color 0.15s ease;
+}
+.theme-seg-btn+.theme-seg-btn{border-left:0.5px solid var(--border-color)}
+.theme-seg-btn:hover{color:var(--text-primary)}
+.theme-seg-btn.active{background:var(--bg-tertiary);color:var(--text-primary)}
+.inspector-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;gap:8px}
+.inspector-key{color:var(--text-secondary);flex-shrink:0;font-size:12px;line-height:1.4}
+.inspector-value{color:var(--text-primary);text-align:right;word-break:break-all;font-family:"SFMono-Regular","Menlo",monospace;font-size:12px;font-variant-numeric:tabular-nums}
+
+/* Stepper control (used for font-size, spacing, indent).
+   All steppers share the exact same layout — 4 slots in a fixed-width
+   row — so that the − / + buttons line up vertically across every row
+   of the inspector. Without a fixed total width each stepper would
+   size itself to its content (e.g. a 3-digit value vs. a 2-digit one)
+   and the plus/minus buttons would land at different x-coordinates. */
+.stepper{
+  display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;
+  width:110px; /* 22 (reset) + 4 + 22 (−) + 4 + 32 (value) + 4 + 22 (+) = 110 */
+  flex-shrink:0;
+}
+.stepper-btn{
+  width:22px;height:22px;border:0.5px solid var(--border-color);
+  background:var(--bg-primary);color:var(--text-primary);
+  border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s ease,border-color 0.15s ease,opacity 0.15s ease;
+  padding:0;line-height:1;flex-shrink:0;
+}
+.stepper-btn:hover{background:var(--bg-tertiary)}
+.stepper-btn:disabled{opacity:0.4;cursor:not-allowed}
+.stepper-reset{
+  opacity:0;pointer-events:none;transition:opacity 0.15s ease;
+  color:var(--text-secondary);
+}
+.stepper-reset svg{width:12px;height:12px;display:block}
+.stepper.modified .stepper-reset{opacity:1;pointer-events:auto}
+.stepper.modified .stepper-reset:hover{color:var(--accent)}
+.stepper-value{
+  width:32px;min-width:32px;max-width:32px;
+  /* Match the +/- button height so the hover background fills the
+     same rectangle as the flanking buttons — stepper reads as a
+     continuous control strip rather than a thin pill between two
+     tall buttons. */
+  height:22px;
+  display:inline-flex;align-items:center;justify-content:center;
+  text-align:center;font-size:12px;
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  font-variant-numeric:tabular-nums;
+  color:var(--text-primary);line-height:1;
+  /* Make the value a proper text target when in contenteditable mode.
+     The fixed width keeps the flanking − / + buttons locked to the
+     same x-positions regardless of the current digit count. */
+  outline:none;border-radius:3px;
+  transition:background 0.15s ease,box-shadow 0.15s ease;
+  cursor:text;
+  box-sizing:border-box;
+  overflow:hidden;white-space:nowrap;
+}
+.stepper-value:hover{
+  /* Soft hinted background only — no underline/border shadow. Keeps
+     the hover affordance lightweight so the numeric value doesn't
+     compete visually with the flanking +/- buttons. */
+  background:var(--bg-tertiary);
+}
+.stepper-value:focus{
+  background:var(--bg-tertiary);
+  box-shadow:inset 0 0 0 1px var(--accent);
+}
+
+.inspector-tag{display:inline-block;padding:2px 6px;border-radius:3px;background:var(--bg-tertiary);color:var(--text-primary);font-size:12px;font-weight:600;margin-bottom:8px}
+
+/* Color picker control */
+.color-control{display:inline-flex;align-items:center;gap:4px}
+.color-control.modified .stepper-reset{opacity:1;pointer-events:auto}
+/* Swatch is a display-only preview — never opens the native picker. */
+.color-input{
+  width:22px;height:22px;padding:0;border:0.5px solid var(--border-color);
+  border-radius:4px;background:transparent;
+  pointer-events:none;flex-shrink:0;
+}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:none;border-radius:3px}
+.color-input::-moz-color-swatch{border:none;border-radius:3px}
+/* Hex text input — editable source of truth for the RGB component */
+.hex-input{
+  width:56px;height:22px;padding:0 6px;
+  border:0.5px solid var(--border-color);border-radius:4px;
+  background:var(--bg-primary);color:var(--text-primary);
+  font-family:"SFMono-Regular","Menlo","Monaco","Consolas",monospace;
+  font-size:11px;line-height:1;text-align:left;
+  font-variant-numeric:tabular-nums;
+  outline:none;text-transform:lowercase;
+}
+.hex-input:focus{border-color:var(--accent)}
+.hex-input.invalid{border-color:#e5484d}
+/* Alpha (opacity %) numeric input paired with each color swatch */
+.alpha-input{
+  width:32px;height:22px;padding:0 4px;
+  border:0.5px solid var(--border-color);border-radius:4px;
+  background:var(--bg-primary);color:var(--text-primary);
+  font-size:12px;line-height:1;text-align:right;
+  font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield;appearance:textfield;
+  outline:none;
+}
+.alpha-input::-webkit-outer-spin-button,
+.alpha-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.alpha-input:focus{border-color:var(--accent)}
+.alpha-suffix{font-size:10px;color:var(--text-secondary);margin-left:-2px;user-select:none}
+
+.inspector-color-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;border:0.5px solid var(--border-color);vertical-align:middle;margin-right:4px}
+
+/* ===== Fullscreen preview mode =====
+   The fullscreen-toggle button is normally only surfaced in the stacked
+   (mobile) layout; on wider viewports three-panel horizontal view already
+   gives Preview plenty of room. Exception: while fullscreen is ACTIVE we
+   always show the toggle regardless of viewport width, so the user can
+   always exit — otherwise resizing the window mid-fullscreen could hide
+   the only way out. */
+#fullscreen-toggle{display:none}
+@media(max-width:900px){
+  #fullscreen-toggle{display:flex}
+}
+body.fullscreen-preview #fullscreen-toggle{
+  display:flex !important;position:relative;z-index:700;
+  color:var(--text-primary) !important;
+  background:var(--bg-tertiary) !important;
+}
+body.fullscreen-preview #fullscreen-toggle:hover{
+  background:var(--accent-bg) !important;color:var(--accent) !important;
+}
+
+/* Fullscreen preview mode layout: activated by JS (body.fullscreen-preview).
+   The Preview panel takes over the entire app area — Editor, Inspector,
+   and both dividers are hidden. The virtual screen inside can still be
+   resized via its side handles, now with a higher 800px cap. On viewports
+   ≤ 640px the virtual screen snaps to the full viewport width. */
+body.fullscreen-preview .editor-panel,
+body.fullscreen-preview .inspector-panel,
+body.fullscreen-preview .topbar,
+body.fullscreen-preview #divider{display:none !important}
+body.fullscreen-preview .editor-container{
+  padding-top:calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left:calc(12px + env(safe-area-inset-left, 0px));
+  padding-right:calc(12px + env(safe-area-inset-right, 0px));
+}
+body.fullscreen-preview .preview-panel{flex:1;min-width:0}
+body.fullscreen-preview .screens-container{
+  width:800px;
+  min-width:320px;
+  max-width:min(800px, calc(100% - 56px));
+}
+/* Viewport ≤ 640px: virtual screen goes edge-to-edge (no padding, no
+   handles room). Also zero out Preview bg padding and border so the
+   bubble reaches actual device edges, respecting safe-area. */
+@media(max-width:640px){
+  body.fullscreen-preview .editor-container{
+    padding:0;
+    padding-top:env(safe-area-inset-top, 0px);
+    padding-bottom:env(safe-area-inset-bottom, 0px);
+    padding-left:env(safe-area-inset-left, 0px);
+    padding-right:env(safe-area-inset-right, 0px);
+    gap:0;
+  }
+  body.fullscreen-preview .preview-panel{border-radius:0}
+  body.fullscreen-preview .panel{border-radius:0;box-shadow:none}
+  body.fullscreen-preview .preview-bg{padding:0;border-radius:0}
+  body.fullscreen-preview .screens-container{
+    width:100%;max-width:100%;min-width:0;
+  }
+  body.fullscreen-preview .preview-outer{
+    border-radius:0;border:none;
+  }
+  /* Hide the card handles on tiny viewports — there's no slack to
+     resize, and they'd sit outside the virtual screen anyway. */
+  body.fullscreen-preview .card-handle{display:none}
+}
+/* Compress icon toggle for the fullscreen button */
+body.fullscreen-preview #fullscreen-toggle .expand-icon{display:none}
+body.fullscreen-preview #fullscreen-toggle .compress-icon{display:block}
 
 /* ===== Toast ===== */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);padding:10px 20px;background:var(--toast-bg);color:var(--toast-text);border-radius:var(--radius);font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);z-index:1000}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ===== Responsive ===== */
-@media(max-width:480px){.inspector-panel{display:none}.toolbar{padding:0 8px}.toolbar-title{font-size:12px}}
-@media print{.toolbar,.editor-panel,.divider,.inspector-panel{display:none!important}.preview-panel{flex:1}.panel-header{display:none}}
+/* ===== AI Mode ===== */
+/* AI bubbles are narrow and favor a tighter vertical rhythm: headings
+   sit closer to the content above them than they do in Files mode.
+   Chats mode flattens headings entirely (padding-top:0) so these
+   overrides only need to undo the Files-friendly defaults declared
+   in :root.
+   Only H1–H3 get their own inner breathing; H4–H6 already default
+   to 0 at the :root level.
+   The override is declared on `.screen-wrap` (not `.markdown-body`)
+   because inspector steppers write inline CSS variables onto that
+   same element; keeping both defaults and user overrides on the
+   same layer keeps `getComputedStyle(screen-wrap)` — used by the
+   inspector to refresh displayed values — in sync with what the
+   preview actually renders. */
+.preview-panel[data-mode="ai"] .screen-wrap{
+  --mt-h1: 8px;
+  --mt-h2: 4px;
+  /* Tables read tighter in AI mode — the 12px default feels chunky
+     against the condensed chat-body rhythm. */
+  --th-pt: 8px;
+  --mt-h3: 0px;
+}
+
+/* ===== Chats Mode ===== */
+.preview-panel[data-mode="chats"] .preview-outer{
+  background:#EDEDED;
+}
+[data-theme="dark"] .preview-panel[data-mode="chats"] .preview-outer{
+  background:#111111;
+}
+/* Chats keeps all headings at body font size as a core design choice —
+   this is non-negotiable and not exposed to the inspector (the font
+   size stepper governs --fs-base; headings simply inherit it in chats).
+   Padding-top is however driven by the per-level --mt-h{1..6} variables
+   (declared below at the .screen-wrap layer) so the inspector can still
+   tweak heading breathing room in chats mode; by default they are all
+   set to 0 which matches the original visual of "no air above chat
+   headings". */
+.preview-panel[data-mode="chats"] .markdown-body h1,
+.preview-panel[data-mode="chats"] .markdown-body h2,
+.preview-panel[data-mode="chats"] .markdown-body h3,
+.preview-panel[data-mode="chats"] .markdown-body h4,
+.preview-panel[data-mode="chats"] .markdown-body h5,
+.preview-panel[data-mode="chats"] .markdown-body h6{
+  font-size:var(--fs-base);margin-top:0;
+}
+/* All six heading padding-tops default to 0 in chats mode; user can
+   still dial them up via the inspector if they want more breathing. */
+.preview-panel[data-mode="chats"] .screen-wrap{
+  --mt-h1: 0px;
+  --mt-h2: 0px;
+  --mt-h3: 0px;
+  --mt-h4: 0px;
+  --mt-h5: 0px;
+  --mt-h6: 0px;
+  /* Tables feel crowded with the 12px default in chat bubbles —
+     8px lands closer to the tight chat rhythm. */
+  --th-pt: 8px;
+}
+
+/* ===== Files Mode ===== */
+/* Files mode reads as a "document page" rather than a message
+   bubble, so the defaults are tuned toward long-form article
+   rhythm: bigger base font (19.5px vs 17px), more relaxed body
+   line-height (1.6 vs 1.4), and roomier paragraph breaks
+   (24/12px vs 8/4px) to give the text page-like breathing. The
+   Inspector will pick these up via getComputedStyle. */
+.preview-panel[data-mode="files"] .screen-wrap{
+  --fs-base: 19.5px;
+  --lh-body: 1.6;
+  --sp-single: 12px;
+  --sp-double: 24px;
+  /* Heading top-padding defaults — same rhythm as AI mode, tighter
+     than the global 12/8/4 baseline. */
+  --mt-h1: 8px;
+  --mt-h2: 4px;
+  --mt-h3: 0px;
+  /* Files is a long-form document surface, so deeper nesting is
+     expected (outlines, nested quotes). Default to 6 levels instead
+     of the 3-level cap used by AI/Chats. Inspector's Max-indent
+     stepper reads this via getComputedStyle so its displayed value
+     stays in sync. */
+  --max-indent: 6;
+}
+.preview-panel[data-mode="files"] .preview-outer{
+  background:var(--card-bg);
+}
+/* Code-block rhythm in Files mode: the gap between the LAST code
+   line and the bottom rule is bumped from 12px (default) to 24px so
+   the bottom breathing matches the article-style --sp-double=24
+   that governs the rest of the page. Top padding is left at 12px
+   because the label already supplies its own paragraph-break gap
+   below itself — doubling it would look odd. */
+.preview-panel[data-mode="files"] .code-wrapper{
+  padding-bottom:24px;
+}
+.preview-panel[data-mode="files"] .preview-card{
+  border-radius:0;
+}
+.preview-panel[data-mode="files"] .markdown-body{
+  /* 20px horizontal gutter per design spec (was 16px). Vertical
+     padding kept at 16px so the top/bottom rhythm stays aligned
+     with the existing --sp-double baseline. */
+  border-radius:0;padding:16px 20px;
+}
+/* Files mode list/quote nesting: the blockquote cap is handled by
+   the generic `[data-max-indent="N"]` rules above, but the 4–6 level
+   LIST indent math needs a little extra because the global rules
+   only explicitly handle the 3-level cap. The supplementary rules
+   below are scoped to `[data-max-indent="6"]` so that if the user
+   dials the Max-indent stepper DOWN from 6, these Files-specific
+   extras cleanly stop applying and the generic rules take over. */
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote blockquote blockquote blockquote{
+  padding-left:20px;border-left:2px solid rgba(0,0,0,0.15);
+}
+[data-theme="dark"] .preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote blockquote blockquote blockquote{
+  border-left-color:rgba(255,255,255,0.15);
+}
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote blockquote li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote blockquote li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote li>ul li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote li>ol li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote li>ul li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote li>ol li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ul li>ul li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ul li>ul li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ul li>ol li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ul li>ol li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ol li>ul li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ol li>ul li>ol,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ol li>ol li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ol li>ol li>ol{
+  margin-left:calc(var(--ol-num-width, 1.2em) + 0.25em);
+}
+/* Files mode: flatten at level 7+ (only when cap = 6). */
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] blockquote blockquote blockquote blockquote blockquote blockquote blockquote{
+  padding-left:0;border-left:none;margin-left:0;
+}
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ul li>ul li>ul li>ul li>ul li>ul,
+.preview-panel[data-mode="files"] .markdown-body[data-max-indent="6"] li>ol li>ol li>ol li>ol li>ol li>ol{
+  margin-left:0;
+}
+
+/* ===== Responsive =====
+   The viewport threshold (900px) is calibrated so that three-panel
+   horizontal layout always has room for:
+     - Editor ≥ ~220px usable width
+     - Preview panel with a 320px+ virtual screen (≈ 412px panel)
+     - Inspector overlay (floats over Preview when opened)
+   Below this width, the UI switches to stacked vertical panels so the
+   virtual screen never gets squeezed below its 320px minimum. */
+@media(max-width:900px){
+  /* Tighter topbar gutters on narrow (stacked) layouts. The logo
+     drops its 4px left padding (shifts 4px closer to the edge), and
+     the two topbar icons shift 8px closer to the right edge
+     (wide-layout 20px → 8px). Inter-icon gap tightens from the
+     wide-layout 12px down to 8px so it matches the header-icon
+     rhythm used by the editor panel below it. */
+  .topbar-left{padding-left:0}
+  .topbar-right{margin-right:8px;gap:8px}
+  .editor-container{flex-direction:column;flex:1;min-height:0;padding:0 8px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px));gap:12px;overflow:hidden}
+  .editor-panel{flex:1;min-height:0}
+  .preview-panel{flex:1;min-height:0}
+  /* Wider gap between preview-header icon buttons on mobile */
+  .preview-header-right{gap:16px}
+  /* Inspector stays in the flex column: default to a modest height (not full
+     remaining space) so editor + preview keep most of the viewport.
+     min-height keeps content readable. The desktop fixed-width contract
+     (width/min-width/max-width: --side-panel-width) is released here so the
+     stacked layout can span the full column. */
+  .inspector-panel{flex:0 1 40vh;min-height:160px;width:auto;min-width:0;max-width:none}
+  .inspector-panel.collapsed{
+    flex:0 0 0;min-height:0;width:auto;max-width:none;
+    transform:translateY(calc(100% + 24px));
+  }
+  /* Mobile (stacked) divider: horizontal. Keep it `position:absolute`
+     like on desktop so it doesn't occupy flex space and break the
+     12px editor↔preview vertical rhythm. JS (see `syncDividerX`
+     in app.js) writes a vertical `--divider-y` in mobile mode; the
+     divider itself spans the full width and sits centred in the
+     12px gap between editor and preview. */
+  .divider{
+    position:absolute;top:var(--divider-y, 50%);left:12px;right:12px;
+    width:auto;height:4px;margin:0;margin-top:-2px;
+    cursor:row-resize;flex-shrink:0;
+  }
+  .divider-line{width:32px;height:2px}
+  .divider:hover .divider-line,.divider.active .divider-line{width:48px;height:3px}
+  .divider::before{top:-6px;bottom:-6px;left:0;right:0}
+  /* Editor panel: mobile collapse as horizontal bar */
+  .editor-panel{flex:1;min-height:0}
+  .editor-panel.collapsed{
+    width:100% !important;height:40px;flex:none !important;
+    cursor:pointer;
+  }
+  .editor-panel.collapsed .editor-collapsed-label{
+    display:none;
+  }
+  .editor-panel.collapsed .panel-header{
+    display:flex !important;border-bottom:none;height:40px;align-items:center;
+  }
+  .editor-panel.collapsed .panel-label{display:block !important}
+  .editor-panel.collapsed .editor-collapsed-arrow{display:none}
+  /* Arrow: show on mobile only, down when collapsed (expand), up when expanded (collapse) */
+  .editor-panel .editor-toggle{display:flex;transform:rotate(90deg)}
+  .editor-panel.collapsed .editor-toggle{display:flex;transform:rotate(-90deg)}
+  .editor-panel .panel-header{cursor:pointer}
+  /* Card handles: larger touch target on mobile */
+  .card-handle-left,.card-handle-right{width:28px;height:56px}
+  .card-handle-left .card-handle-bar,.card-handle-right .card-handle-bar{width:3px;height:36px}
+  .card-handle-top,.card-handle-bottom{width:56px;height:28px}
+  .card-handle-top .card-handle-bar,.card-handle-bottom .card-handle-bar{width:36px;height:3px}
+}
+@media(max-width:480px){
+  .toolbar-title{display:none}
+}
+@media print{.toolbar,.topbar,.editor-panel,.divider,.inspector-panel{display:none!important}.preview-panel{flex:1}.panel-header{display:none}}
